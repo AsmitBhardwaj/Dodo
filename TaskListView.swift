@@ -186,4 +186,5 @@ extension Color {
     TaskListView()
         .environmentObject(TaskManager())
         .environmentObject(DodoManager())
+        .preferredColorScheme(.dark)
 }
