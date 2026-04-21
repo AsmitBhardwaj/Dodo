@@ -482,4 +482,5 @@ extension Color {
     ContentView()
         .environmentObject(TaskManager())
         .environmentObject(DodoManager())
+        .preferredColorScheme(.dark)
 }
