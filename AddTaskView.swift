@@ -71,4 +71,5 @@ struct AddTaskView: View {
 #Preview {
     AddTaskView()
         .environmentObject(TaskManager())
+        .preferredColorScheme(.dark)
 }
