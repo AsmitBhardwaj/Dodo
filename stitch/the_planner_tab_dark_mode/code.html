@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#0e1419",
+                    "surface-bright": "#252d35",
+                    "on-primary-fixed": "#004436",
+                    "surface": "#0a0f14",
+                    "outline": "#71767c",
+                    "primary-fixed": "#48f7cd",
+                    "on-error-container": "#ffa8a3",
+                    "surface-container-high": "#1a2027",
+                    "on-primary-fixed-variant": "#006450",
+                    "surface-dim": "#0a0f14",
+                    "on-tertiary": "#572400",
+                    "secondary-fixed": "#e7c5ff",
+                    "on-secondary-fixed-variant": "#7520b5",
+                    "surface-variant": "#1f262e",
+                    "primary": "#48f7cd",
+                    "on-error": "#490006",
+                    "error-dim": "#d7383b",
+                    "secondary-container": "#6a0baa",
+                    "inverse-surface": "#f7f9ff",
+                    "on-surface": "#e7ebf3",
+                    "tertiary": "#ff9a5d",
+                    "on-secondary-container": "#e6c3ff",
+                    "on-secondary-fixed": "#510085",
+                    "surface-tint": "#48f7cd",
+                    "primary-container": "#04dab2",
+                    "surface-container-lowest": "#000000",
+                    "primary-dim": "#30e8bf",
+                    "on-secondary": "#340058",
+                    "inverse-on-surface": "#51555c",
+                    "secondary-fixed-dim": "#deb3ff",
+                    "tertiary-fixed-dim": "#f6853b",
+                    "on-tertiary-fixed-variant": "#612900",
+                    "on-background": "#e7ebf3",
+                    "outline-variant": "#43484e",
+                    "error-container": "#9f0519",
+                    "on-primary-container": "#004537",
+                    "secondary-dim": "#c57eff",
+                    "surface-container": "#141a20",
+                    "on-surface-variant": "#a7abb2",
+                    "inverse-primary": "#006c57",
+                    "surface-container-highest": "#1f262e",
+                    "on-tertiary-fixed": "#2d0f00",
+                    "on-tertiary-container": "#451b00",
+                    "on-primary": "#005947",
+                    "primary-fixed-dim": "#30e8bf",
+                    "tertiary-fixed": "#ff9655",
+                    "tertiary-container": "#f9873e",
+                    "secondary": "#c57eff",
+                    "background": "#0a0f14",
+                    "error": "#ff716c",
+                    "tertiary-dim": "#ef8037"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#0a0f14]/60 backdrop-blur-xl fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 w-full shadow-[0_0_40px_rgba(0,217,177,0.08)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00D9B1] text-2xl active:scale-95 duration-150 cursor-pointer" data-icon="bolt">bolt</span>
+<h1 class="text-[#00D9B1] font-['Plus_Jakarta_Sans'] font-black text-2xl tracking-tighter">Dodo</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-400 text-2xl hover:bg-[#252d35] transition-all duration-300 p-2 rounded-full cursor-pointer active:scale-95 duration-150" data-icon="settings">settings</span>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Header Section -->
+<section class="mb-8">
+<h2 class="font-headline font-bold text-[28pt] leading-tight text-on-surface">Academic Week</h2>
+<p class="text-[#FF8C42] font-semibold text-lg tracking-wide">Oct 23 - Oct 29</p>
+</section>
+<!-- Week Selector -->
+<section class="mb-10 overflow-x-auto hide-scrollbar flex gap-4 py-2">
+<button class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-container flex flex-col items-center justify-center hover:bg-surface-bright transition-all">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Mon</span>
+<span class="text-lg font-bold">23</span>
+</button>
+<button class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-container flex flex-col items-center justify-center hover:bg-surface-bright transition-all">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Tue</span>
+<span class="text-lg font-bold">24</span>
+</button>
+<button class="flex-shrink-0 w-16 h-16 rounded-full bg-[#00D9B1] text-white flex flex-col items-center justify-center shadow-[0_0_20px_rgba(0,217,177,0.4)]">
+<span class="text-[10px] uppercase font-bold opacity-80">Wed</span>
+<span class="text-lg font-bold">25</span>
+</button>
+<button class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-container flex flex-col items-center justify-center hover:bg-surface-bright transition-all">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Thu</span>
+<span class="text-lg font-bold">26</span>
+</button>
+<button class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-container flex flex-col items-center justify-center hover:bg-surface-bright transition-all">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Fri</span>
+<span class="text-lg font-bold">27</span>
+</button>
+<button class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-container flex flex-col items-center justify-center hover:bg-surface-bright transition-all">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Sat</span>
+<span class="text-lg font-bold">28</span>
+</button>
+</section>
+<!-- Exam Countdown Bento -->
+<section class="mb-10">
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#8B4513] to-[#A0522D] p-8 shadow-2xl">
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+<div class="flex justify-between items-start relative z-10">
+<div>
+<span class="inline-block px-3 py-1 bg-[#FF8C42] text-white text-[10px] font-bold uppercase tracking-widest rounded-full mb-3">3 Days Left</span>
+<h3 class="font-headline text-3xl font-bold text-white">Physics Midterm</h3>
+<p class="text-white/70 mt-1 font-medium italic">General Relativity &amp; Mechanics</p>
+</div>
+<div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Class Cards -->
+<section class="space-y-4">
+<h4 class="font-headline text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6 flex items-center gap-2">
+                Today's Schedule
+                <div class="h-[1px] flex-grow bg-outline-variant/20"></div>
+</h4>
+<!-- Math Card -->
+<div class="group relative bg-surface-container-low rounded-lg p-6 border-l-4 border-[#FF6B9D] hover:bg-surface-bright transition-all duration-300">
+<div class="flex justify-between items-center">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[#FF6B9D] text-xs font-bold font-mono tracking-tighter">LECTURE</span>
+<span class="text-on-surface-variant text-xs">• Room 302</span>
+</div>
+<h3 class="text-xl font-bold font-headline">MATH 401</h3>
+<p class="text-on-surface-variant text-sm mt-1">Advanced Linear Algebra</p>
+</div>
+<div class="text-right">
+<span class="block text-lg font-bold text-on-surface tracking-tight">09:00</span>
+<span class="text-xs text-on-surface-variant font-medium">60 MIN</span>
+</div>
+</div>
+</div>
+<!-- CS Card -->
+<div class="group relative bg-surface-container-low rounded-lg p-6 border-l-4 border-[#4ECDC4] hover:bg-surface-bright transition-all duration-300">
+<div class="flex justify-between items-center">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[#4ECDC4] text-xs font-bold font-mono tracking-tighter">LAB SESSION</span>
+<span class="text-on-surface-variant text-xs">• Computer Lab 4</span>
+</div>
+<h3 class="text-xl font-bold font-headline">CS 216</h3>
+<p class="text-on-surface-variant text-sm mt-1">Data Structures &amp; Algorithms</p>
+</div>
+<div class="text-right">
+<span class="block text-lg font-bold text-on-surface tracking-tight">13:30</span>
+<span class="text-xs text-on-surface-variant font-medium">90 MIN</span>
+</div>
+</div>
+</div>
+<!-- Empty State Concept (Asymmetric Filler) -->
+<div class="bg-surface-container-lowest/40 rounded-lg border-2 border-dashed border-outline-variant/10 p-8 flex flex-col items-center justify-center text-center">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-outline-variant" data-icon="event_busy">event_busy</span>
+</div>
+<p class="text-on-surface-variant text-sm max-w-[200px]">No other scheduled activities for today.</p>
+</div>
+</section>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-[#00D9B1] text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,217,177,0.3)] hover:scale-110 active:scale-90 transition-all z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full bg-[#141a20]/80 backdrop-blur-2xl rounded-t-[32px] flex justify-around items-center px-4 pt-3 pb-8 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="home_app_logo">home_app_logo</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Dodo</span>
+</a>
+<!-- Planner (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#00D9B1]/10 text-[#00D9B1] rounded-full px-5 py-2 shadow-[0_0_15px_rgba(0,217,177,0.2)] active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Planner</span>
+</a>
+<!-- Tasks -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Tasks</span>
+</a>
+<!-- Journey -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Journey</span>
+</a>
+</nav>
+</body></html>

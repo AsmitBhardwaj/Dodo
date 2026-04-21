@@ -9,10 +9,19 @@ import Foundation
 import SwiftData
 
 @Model
-final class Item {
-    var timestamp: Date
+class Routine {
+    var name: String
+    var streakCount: Int
+    var lastCompletedDate: Date?
     
-    init(timestamp: Date) {
-        self.timestamp = timestamp
+    init(name: String) {
+        self.name = name
+        self.streakCount = 0
+        self.lastCompletedDate = nil
+    }
+    
+    var isCompletedToday: Bool {
+        guard let lastDate = lastCompletedDate else { return false }
+        return Calendar.current.isDateInToday(lastDate)
     }
 }

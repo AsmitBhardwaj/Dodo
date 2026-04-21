@@ -16,6 +16,7 @@ struct DodoApp: App {
             ContentView()
                 .environmentObject(taskManager)
                 .environmentObject(dodoManager)
+                .preferredColorScheme(.dark)
         }
     }
 }

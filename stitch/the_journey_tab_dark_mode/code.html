@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#0e1419",
+                        "surface-bright": "#252d35",
+                        "on-primary-fixed": "#004436",
+                        "surface": "#0a0f14",
+                        "outline": "#71767c",
+                        "primary-fixed": "#48f7cd",
+                        "on-error-container": "#ffa8a3",
+                        "surface-container-high": "#1a2027",
+                        "on-primary-fixed-variant": "#006450",
+                        "surface-dim": "#0a0f14",
+                        "on-tertiary": "#572400",
+                        "secondary-fixed": "#e7c5ff",
+                        "on-secondary-fixed-variant": "#7520b5",
+                        "surface-variant": "#1f262e",
+                        "primary": "#48f7cd",
+                        "on-error": "#490006",
+                        "error-dim": "#d7383b",
+                        "secondary-container": "#6a0baa",
+                        "inverse-surface": "#f7f9ff",
+                        "on-surface": "#e7ebf3",
+                        "tertiary": "#ff9a5d",
+                        "on-secondary-container": "#e6c3ff",
+                        "on-secondary-fixed": "#510085",
+                        "surface-tint": "#48f7cd",
+                        "primary-container": "#04dab2",
+                        "surface-container-lowest": "#000000",
+                        "primary-dim": "#30e8bf",
+                        "on-secondary": "#340058",
+                        "inverse-on-surface": "#51555c",
+                        "secondary-fixed-dim": "#deb3ff",
+                        "tertiary-fixed-dim": "#f6853b",
+                        "on-tertiary-fixed-variant": "#612900",
+                        "on-background": "#e7ebf3",
+                        "outline-variant": "#43484e",
+                        "error-container": "#9f0519",
+                        "on-primary-container": "#004537",
+                        "secondary-dim": "#c57eff",
+                        "surface-container": "#141a20",
+                        "on-surface-variant": "#a7abb2",
+                        "inverse-primary": "#006c57",
+                        "surface-container-highest": "#1f262e",
+                        "on-tertiary-fixed": "#2d0f00",
+                        "on-tertiary-container": "#451b00",
+                        "on-primary": "#005947",
+                        "primary-fixed-dim": "#30e8bf",
+                        "tertiary-fixed": "#ff9655",
+                        "tertiary-container": "#f9873e",
+                        "secondary": "#c57eff",
+                        "background": "#0a0f14",
+                        "error": "#ff716c",
+                        "tertiary-dim": "#ef8037"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #0a0f14;
+            color: #e7ebf3;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .glass-panel {
+            background: rgba(20, 26, 32, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface selection:bg-primary/30 min-h-screen pb-32">
+<!-- Top AppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0a0f14]/60 backdrop-blur-xl flex justify-between items-center px-6 h-16 shadow-[0_0_40px_rgba(0,217,177,0.08)]">
+<div class="text-[#00D9B1] font-black text-2xl tracking-tighter font-headline">Dodo</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full text-slate-400 hover:bg-[#252d35] transition-all duration-300 active:scale-95">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+<button class="p-2 rounded-full text-slate-400 hover:bg-[#252d35] transition-all duration-300 active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Header -->
+<header class="flex items-center justify-between">
+<h1 class="text-[24pt] font-headline font-bold text-on-surface">Your Progression 📊</h1>
+</header>
+<!-- Streak Card (Bento Large) -->
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#FF6B35] to-[#FF4757] p-8 shadow-[0_20px_50px_rgba(255,107,53,0.3)] group transition-transform hover:scale-[1.02] duration-300">
+<div class="absolute -right-8 -bottom-8 opacity-20 scale-150 transform rotate-12 group-hover:rotate-0 transition-transform duration-700">
+<span class="material-symbols-outlined text-[120px] text-white" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="relative z-10 flex flex-col items-start gap-2">
+<span class="text-white/80 font-label font-semibold tracking-widest uppercase text-xs">Current Streak</span>
+<div class="flex items-center gap-4">
+<span class="text-5xl font-headline font-extrabold text-white">22 Days</span>
+<span class="text-4xl">🔥</span>
+</div>
+</div>
+</div>
+<!-- Activity Graph (Glassmorphism Card) -->
+<section class="bg-surface-container rounded-xl p-6 shadow-xl space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="text-on-surface font-headline font-bold text-xl">Activity Analytics</h3>
+<p class="text-on-surface-variant text-sm">Real-time performance metrics</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant">Tasks</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant">Points</span>
+</div>
+</div>
+</div>
+<div class="h-48 w-full relative">
+<!-- SVG Visualization representing the smooth line chart -->
+<svg class="w-full h-full" viewbox="0 0 400 150">
+<!-- Tasks Line (Green) -->
+<path d="M0,120 Q50,110 80,70 T160,80 T240,40 T320,60 T400,20" fill="none" stroke="#48f7cd" stroke-linecap="round" stroke-width="4"></path>
+<path d="M0,120 Q50,110 80,70 T160,80 T240,40 T320,60 T400,20 L400,150 L0,150 Z" fill="url(#grad-primary)" opacity="0.1"></path>
+<!-- Points Line (Purple) -->
+<path d="M0,140 Q60,130 100,100 T180,110 T260,70 T340,90 T400,50" fill="none" stroke="#c57eff" stroke-linecap="round" stroke-width="4"></path>
+<path d="M0,140 Q60,130 100,100 T180,110 T260,70 T340,90 T400,50 L400,150 L0,150 Z" fill="url(#grad-secondary)" opacity="0.1"></path>
+<defs>
+<lineargradient id="grad-primary" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#48f7cd;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#48f7cd;stop-opacity:0"></stop>
+</lineargradient>
+<lineargradient id="grad-secondary" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#c57eff;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#c57eff;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</section>
+<!-- Bento Row: Heatmap & Insights -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Habit Heatmap -->
+<div class="bg-surface-container rounded-xl p-6 flex flex-col justify-between space-y-4">
+<header>
+<h3 class="text-on-surface font-headline font-bold text-lg">Habit Heatmap</h3>
+<p class="text-on-surface-variant text-xs">Past 5 weeks consistency</p>
+</header>
+<div class="heatmap-grid">
+<!-- 7x5 Grid of rounded squares -->
+<!-- Week 1 -->
+<div class="aspect-square rounded-md bg-primary/20"></div>
+<div class="aspect-square rounded-md bg-primary/60"></div>
+<div class="aspect-square rounded-md bg-primary/10"></div>
+<div class="aspect-square rounded-md bg-primary/80"></div>
+<div class="aspect-square rounded-md bg-primary/40"></div>
+<div class="aspect-square rounded-md bg-primary/90"></div>
+<div class="aspect-square rounded-md bg-primary/30"></div>
+<!-- Week 2 -->
+<div class="aspect-square rounded-md bg-primary/70"></div>
+<div class="aspect-square rounded-md bg-primary/100 shadow-[0_0_10px_rgba(72,247,205,0.4)]"></div>
+<div class="aspect-square rounded-md bg-primary/50"></div>
+<div class="aspect-square rounded-md bg-primary/20"></div>
+<div class="aspect-square rounded-md bg-primary/90"></div>
+<div class="aspect-square rounded-md bg-primary/60"></div>
+<div class="aspect-square rounded-md bg-primary/40"></div>
+<!-- Week 3 -->
+<div class="aspect-square rounded-md bg-primary/30"></div>
+<div class="aspect-square rounded-md bg-primary/50"></div>
+<div class="aspect-square rounded-md bg-primary/80"></div>
+<div class="aspect-square rounded-md bg-primary/90 shadow-[0_0_10px_rgba(72,247,205,0.4)]"></div>
+<div class="aspect-square rounded-md bg-primary/20"></div>
+<div class="aspect-square rounded-md bg-primary/70"></div>
+<div class="aspect-square rounded-md bg-primary/40"></div>
+<!-- Week 4 -->
+<div class="aspect-square rounded-md bg-primary/10"></div>
+<div class="aspect-square rounded-md bg-primary/30"></div>
+<div class="aspect-square rounded-md bg-primary/50"></div>
+<div class="aspect-square rounded-md bg-primary/70 shadow-[0_0_10px_rgba(72,247,205,0.4)]"></div>
+<div class="aspect-square rounded-md bg-primary/100"></div>
+<div class="aspect-square rounded-md bg-primary/90"></div>
+<div class="aspect-square rounded-md bg-primary/80"></div>
+<!-- Week 5 -->
+<div class="aspect-square rounded-md bg-primary/50"></div>
+<div class="aspect-square rounded-md bg-primary/70"></div>
+<div class="aspect-square rounded-md bg-primary/90 shadow-[0_0_10px_rgba(72,247,205,0.4)]"></div>
+<div class="aspect-square rounded-md bg-primary/30"></div>
+<div class="aspect-square rounded-md bg-primary/40"></div>
+<div class="aspect-square rounded-md bg-primary/60"></div>
+<div class="aspect-square rounded-md bg-primary/80"></div>
+</div>
+</div>
+<!-- Insight Card -->
+<div class="bg-surface-container-high rounded-xl p-8 border border-primary/5 relative flex flex-col justify-center gap-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_20px_rgba(72,247,205,0.1)]">
+<span class="material-symbols-outlined text-2xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<span class="text-primary font-bold tracking-tight text-lg">Weekly Insight</span>
+</div>
+<p class="text-on-surface text-xl font-headline leading-tight">
+                    Your productivity is <span class="text-primary font-bold">+15%</span> vs last week! Keep thriving.
+                </p>
+<div class="absolute right-4 top-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+</div>
+<!-- Decorative Achievement Row -->
+<div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<div class="flex-shrink-0 bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 border border-outline-variant/10">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="abstract dynamic background with flowing light trails in neon cyan and magenta colors, professional 3D render" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCASfCeGR_PjpHEl_YQPYwPx7gE6PEE5a6g7EB72GMgkYpepW63aHcq8sMAvKyaojHOFvc7kjh90viX2JOLUmHwt090bn7VD28mKajzHV1ou5dcJhUAM8qDXwjMg8mN7rE19x4LFBF13-M6z8WXTFr0qbpf6tWStuEgeJjjdQ0murr2Wb_skHVJgTlQFJmq9faTecN4RDpwUVz5yeS2KRLpB6IvTZcBCpfNqwRJ4oEKb8AnJA2xSRqniNnisCVIhuJT2skbosLrjQNy"/>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Unlocked</p>
+<p class="text-sm font-bold">Early Bird Medal</p>
+</div>
+</div>
+<div class="flex-shrink-0 bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 border border-outline-variant/10 opacity-60">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="lock">lock</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Locked</p>
+<p class="text-sm font-bold text-on-surface-variant">Focus Master</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#141a20]/80 backdrop-blur-2xl rounded-t-[32px] flex justify-around items-center px-4 pt-3 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<!-- Tab 1: Dodo -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home_app_logo">home_app_logo</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase">Dodo</span>
+</a>
+<!-- Tab 2: Planner -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_month">calendar_month</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase">Planner</span>
+</a>
+<!-- Tab 3: Tasks -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="assignment">assignment</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase">Tasks</span>
+</a>
+<!-- Tab 4: Journey (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-[#00D9B1]/10 text-[#00D9B1] rounded-full px-5 py-2 shadow-[0_0_15px_rgba(0,217,177,0.2)] active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase">Journey</span>
+</a>
+</nav>
+</body></html>

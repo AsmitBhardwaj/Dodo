@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#0e1419",
+                    "surface-bright": "#252d35",
+                    "on-primary-fixed": "#004436",
+                    "surface": "#0a0f14",
+                    "outline": "#71767c",
+                    "primary-fixed": "#48f7cd",
+                    "on-error-container": "#ffa8a3",
+                    "surface-container-high": "#1a2027",
+                    "on-primary-fixed-variant": "#006450",
+                    "surface-dim": "#0a0f14",
+                    "on-tertiary": "#572400",
+                    "secondary-fixed": "#e7c5ff",
+                    "on-secondary-fixed-variant": "#7520b5",
+                    "surface-variant": "#1f262e",
+                    "primary": "#48f7cd",
+                    "on-error": "#490006",
+                    "error-dim": "#d7383b",
+                    "secondary-container": "#6a0baa",
+                    "inverse-surface": "#f7f9ff",
+                    "on-surface": "#e7ebf3",
+                    "tertiary": "#ff9a5d",
+                    "on-secondary-container": "#e6c3ff",
+                    "on-secondary-fixed": "#510085",
+                    "surface-tint": "#48f7cd",
+                    "primary-container": "#04dab2",
+                    "surface-container-lowest": "#000000",
+                    "primary-dim": "#30e8bf",
+                    "on-secondary": "#340058",
+                    "inverse-on-surface": "#51555c",
+                    "secondary-fixed-dim": "#deb3ff",
+                    "tertiary-fixed-dim": "#f6853b",
+                    "on-tertiary-fixed-variant": "#612900",
+                    "on-background": "#e7ebf3",
+                    "outline-variant": "#43484e",
+                    "error-container": "#9f0519",
+                    "on-primary-container": "#004537",
+                    "secondary-dim": "#c57eff",
+                    "surface-container": "#141a20",
+                    "on-surface-variant": "#a7abb2",
+                    "inverse-primary": "#006c57",
+                    "surface-container-highest": "#1f262e",
+                    "on-tertiary-fixed": "#2d0f00",
+                    "on-tertiary-container": "#451b00",
+                    "on-primary": "#005947",
+                    "primary-fixed-dim": "#30e8bf",
+                    "tertiary-fixed": "#ff9655",
+                    "tertiary-container": "#f9873e",
+                    "secondary": "#c57eff",
+                    "background": "#0a0f14",
+                    "error": "#ff716c",
+                    "tertiary-dim": "#ef8037"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen text-on-surface pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0a0f14]/60 backdrop-blur-xl flex justify-between items-center px-6 h-16 shadow-[0_0_40px_rgba(0,217,177,0.08)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00D9B1]" data-icon="bolt">bolt</span>
+<span class="text-[#00D9B1] font-black text-2xl tracking-tighter font-headline">Dodo</span>
+</div>
+<button class="hover:bg-[#252d35] transition-all duration-300 p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined text-slate-400" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="pt-24 px-6 max-w-md mx-auto space-y-10">
+<!-- Stats Section -->
+<section class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between items-end px-1">
+<span class="font-headline font-bold text-sm tracking-widest uppercase text-on-surface-variant">Hunger</span>
+<span class="text-xs font-bold text-tertiary">85%</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] shadow-[0_0_15px_rgba(255,107,53,0.4)]" style="width: 85%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end px-1">
+<span class="font-headline font-bold text-sm tracking-widest uppercase text-on-surface-variant">Joy</span>
+<span class="text-xs font-bold text-secondary">92%</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full rounded-full bg-gradient-to-r from-[#FF6B9D] to-[#FFA8C5] shadow-[0_0_15px_rgba(255,107,157,0.4)]" style="width: 92%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end px-1">
+<span class="font-headline font-bold text-sm tracking-widest uppercase text-on-surface-variant">Health</span>
+<span class="text-xs font-bold text-primary">78%</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full rounded-full bg-gradient-to-r from-[#4ECDC4] to-[#6EE7B7] shadow-[0_0_15px_rgba(78,205,196,0.4)]" style="width: 78%"></div>
+</div>
+</div>
+</section>
+<!-- Main Character Card -->
+<section class="relative group">
+<div class="absolute -inset-4 bg-primary/5 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative bg-gradient-to-br from-[#1E2530] to-[#252D3A] rounded-xl p-8 aspect-square flex flex-col items-center justify-center text-center shadow-2xl">
+<div class="w-56 h-56 mb-8 rounded-full overflow-hidden bg-surface-container-lowest flex items-center justify-center">
+<img alt="Dodo the Shiba" class="w-full h-full object-cover" data-alt="a cute cartoon illustrated shiba inu dog sitting happily, soft lighting, vibrant colors, expressive friendly face, digital art style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpM-JZR9DushyVUsyPzHGAgcFX3qKUEsn-ZCo-IwZF9_Umk-A9B8vc5yCQdWdAsf5LWZvZIx0Mr-agGX_VEglWQrF0FQTAub8BgmMg7lKbT83FOLllGpZQdtnaOHZQh7uMtGqbYZw9Y_c7IdTSI7-KX7oFcM5wj2gxFlQ2QsGFZCwEc8TxQ848aW1Q6FVEwc25A50H9rTy7XhmKzWq6iIkonoTOaydChClc14xxGgCLzUOizVX50h4DneCALSW90syCnpBBMbhRpMA"/>
+</div>
+<p class="text-on-surface font-headline font-bold text-2xl leading-tight">
+                    Dodo is ready for adventure! 😊
+                </p>
+</div>
+</section>
+<!-- Main CTA -->
+<section class="flex justify-center">
+<button class="w-full max-w-xs h-16 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-headline font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(0,217,177,0.3)] hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined font-bold" data-icon="directions_walk">directions_walk</span>
+                Start Your Day
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#141a20]/80 backdrop-blur-2xl rounded-t-[32px] flex justify-around items-center px-4 pt-3 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<!-- Dodo Tab (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#00D9B1]/10 text-[#00D9B1] rounded-full px-5 py-2 shadow-[0_0_15px_rgba(0,217,177,0.2)] active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="home_app_logo" style="font-variation-settings: 'FILL' 1;">home_app_logo</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Dodo</span>
+</a>
+<!-- Planner Tab -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Planner</span>
+</a>
+<!-- Tasks Tab -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Tasks</span>
+</a>
+<!-- Journey Tab -->
+<a class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 transition-opacity active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[10px] tracking-wider uppercase mt-1">Journey</span>
+</a>
+</nav>
+</body></html>

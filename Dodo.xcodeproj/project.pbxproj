@@ -6,8 +6,23 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3DF27DAE2F8B484400FC69F1 /* Dodo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DAA2F8B484400FC69F1 /* Dodo.swift */; };
+		3DF27DAF2F8B484400FC69F1 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DAD2F8B484400FC69F1 /* TaskListView.swift */; };
+		3DF27DB02F8B484400FC69F1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DA92F8B484400FC69F1 /* ContentView.swift */; };
+		3DF27DB12F8B484400FC69F1 /* DodoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DAB2F8B484400FC69F1 /* DodoApp.swift */; };
+		3DF27DB22F8B484400FC69F1 /* AddTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DA82F8B484400FC69F1 /* AddTaskView.swift */; };
+		3DF27DB32F8B484400FC69F1 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DAC2F8B484400FC69F1 /* Task.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		3D2404392F8B224C00F044D7 /* Dodo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dodo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DF27DA82F8B484400FC69F1 /* AddTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskView.swift; sourceTree = "<group>"; };
+		3DF27DA92F8B484400FC69F1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		3DF27DAA2F8B484400FC69F1 /* Dodo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dodo.swift; sourceTree = "<group>"; };
+		3DF27DAB2F8B484400FC69F1 /* DodoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DodoApp.swift; sourceTree = "<group>"; };
+		3DF27DAC2F8B484400FC69F1 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
+		3DF27DAD2F8B484400FC69F1 /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +48,12 @@
 			isa = PBXGroup;
 			children = (
 				3D24043B2F8B224C00F044D7 /* Dodo */,
+				3DF27DA82F8B484400FC69F1 /* AddTaskView.swift */,
+				3DF27DA92F8B484400FC69F1 /* ContentView.swift */,
+				3DF27DAA2F8B484400FC69F1 /* Dodo.swift */,
+				3DF27DAB2F8B484400FC69F1 /* DodoApp.swift */,
+				3DF27DAC2F8B484400FC69F1 /* Task.swift */,
+				3DF27DAD2F8B484400FC69F1 /* TaskListView.swift */,
 				3D24043A2F8B224C00F044D7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -119,6 +140,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DF27DAE2F8B484400FC69F1 /* Dodo.swift in Sources */,
+				3DF27DAF2F8B484400FC69F1 /* TaskListView.swift in Sources */,
+				3DF27DB02F8B484400FC69F1 /* ContentView.swift in Sources */,
+				3DF27DB12F8B484400FC69F1 /* DodoApp.swift in Sources */,
+				3DF27DB22F8B484400FC69F1 /* AddTaskView.swift in Sources */,
+				3DF27DB32F8B484400FC69F1 /* Task.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
