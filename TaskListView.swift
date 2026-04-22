@@ -40,8 +40,8 @@ struct TaskListView: View {
         NavigationStack {
             VStack(spacing: 0) {
 
+                // ── Conditional header (week strip vs month title) ────
                 if showWeekStrip {
-                    // ── Week strip mode ───────────────────────────────────
                     HStack {
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.25)) {
@@ -68,7 +68,6 @@ struct TaskListView: View {
                             get: { selectedDate ?? visibleMonth },
                             set: { newDate in
                                 selectedDate = newDate
-                                // keep visibleMonth in sync with week strip navigation
                                 visibleMonth = Calendar.current.date(
                                     from: Calendar.current.dateComponents([.year, .month], from: newDate))!
                             }
@@ -77,7 +76,6 @@ struct TaskListView: View {
                     .environmentObject(taskManager)
 
                 } else {
-                    // ── Month grid mode ───────────────────────────────────
                     HStack {
                         Text(visibleMonth, format: .dateTime.month(.wide).year())
                             .font(.system(size: 17, weight: .semibold))
@@ -101,53 +99,55 @@ struct TaskListView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 2)
                     .animation(.easeInOut(duration: 0.2), value: visibleMonth)
+                }
 
-                    // ── Vertical scrolling month grid ─────────────────────
-                    ScrollViewReader { proxy in
-                        ScrollView(.vertical, showsIndicators: false) {
-                            LazyVStack(spacing: 0, pinnedViews: []) {
-                                ForEach(months, id: \.self) { month in
-                                    VStack(spacing: 0) {
-                                        // Month label inside scroll
-                                        HStack {
-                                            Text(month, format: .dateTime.month(.wide).year())
-                                                .font(.system(size: 13, weight: .semibold))
-                                                .foregroundColor(.secondary)
-                                                .padding(.horizontal)
-                                                .padding(.top, 12)
-                                                .padding(.bottom, 4)
-                                            Spacer()
-                                        }
-                                        MonthGridView(
-                                            displayedMonth: .constant(month),
-                                            selectedDate: $selectedDate,
-                                            draggingTask: $draggingTask
-                                        )
-                                        .environmentObject(taskManager)
-                                        .environmentObject(dodoManager)
-                                        .id(monthID(month))
-                                        // Track visibility: update visibleMonth as user scrolls
-                                        .onAppear {
-                                            visibleMonth = month
-                                        }
+                // ── Month grid: ALWAYS in hierarchy, collapsed when week strip is shown ──
+                // Keeping it alive prevents scroll position loss when toggling modes
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(months, id: \.self) { month in
+                                VStack(spacing: 0) {
+                                    HStack {
+                                        Text(month, format: .dateTime.month(.wide).year())
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .padding(.horizontal)
+                                            .padding(.top, 12)
+                                            .padding(.bottom, 4)
+                                        Spacer()
+                                    }
+                                    MonthGridView(
+                                        displayedMonth: .constant(month),
+                                        selectedDate: $selectedDate,
+                                        draggingTask: $draggingTask
+                                    )
+                                    .environmentObject(taskManager)
+                                    .environmentObject(dodoManager)
+                                    .id(monthID(month))
+                                    .onAppear {
+                                        // Only update visibleMonth when grid is active
+                                        // (not when collapsed behind week strip)
+                                        if !showWeekStrip { visibleMonth = month }
                                     }
                                 }
                             }
                         }
-                        .onAppear {
-                            // Jump to today on first load with no animation
-                            proxy.scrollTo(monthID(visibleMonth), anchor: .top)
-                        }
-                        .onChange(of: visibleMonth) { month in
-                            // "Today" button jumps back
-                            if isOnCurrentMonth {
-                                withAnimation(.easeInOut(duration: 0.4)) {
-                                    proxy.scrollTo(monthID(month), anchor: .top)
-                                }
+                    }
+                    .onAppear {
+                        proxy.scrollTo(monthID(visibleMonth), anchor: .top)
+                    }
+                    .onChange(of: visibleMonth) { month in
+                        if isOnCurrentMonth {
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                proxy.scrollTo(monthID(month), anchor: .top)
                             }
                         }
                     }
                 }
+                // Collapse to zero height (but stay alive) when week strip is showing
+                .frame(maxHeight: showWeekStrip ? 0 : .infinity)
+                .clipped()
 
                 if let date = selectedDate {
                     Divider().background(Color.white.opacity(0.08))
