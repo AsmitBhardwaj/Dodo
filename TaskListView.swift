@@ -140,9 +140,10 @@ struct TaskListView: View {
                         }
                     }
                     .onAppear {
-                        // Small delay ensures LazyVStack has rendered today's month
                         Task {
-                            try? await Task.sleep(nanoseconds: 50_000_000)
+                            try? await Task.sleep(nanoseconds: 150_000_000)
+                            visibleMonth = Calendar.current.date(
+                                from: Calendar.current.dateComponents([.year, .month], from: Date()))!
                             proxy.scrollTo(monthID(visibleMonth), anchor: .top)
                         }
                     }
