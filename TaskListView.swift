@@ -17,15 +17,12 @@ struct TaskListView: View {
     @State private var showWeekStrip = false
     @State private var visibleMonth: Date = Calendar.current.date(
         from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-    @State private var scrolledMonthID: String? = {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM"
-        return f.string(from: Date())
-    }()
+    @State private var scrollTarget: String? = nil
 
     private var months: [Date] {
         let cal = Calendar.current
         let base = cal.date(from: cal.dateComponents([.year, .month], from: Date()))!
-        return (-6...18).compactMap { cal.date(byAdding: .month, value: $0, to: base) }
+        return (-3...12).compactMap { cal.date(byAdding: .month, value: $0, to: base) }
     }
 
     private static let monthFormatter: DateFormatter = {
@@ -36,7 +33,6 @@ struct TaskListView: View {
         Self.monthFormatter.string(from: date)
     }
 
-    private var todayMonthID: String { monthID(Date()) }
 
     private var isOnCurrentMonth: Bool {
         Calendar.current.isDate(visibleMonth,
@@ -92,10 +88,9 @@ struct TaskListView: View {
                         Spacer()
                         if !isOnCurrentMonth {
                             Button("Today") {
-                                // Update both state vars so scroll jumps correctly
                                 visibleMonth = Calendar.current.date(
                                     from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-                                scrolledMonthID = todayMonthID
+                                scrollTarget = monthID(visibleMonth)
                                 selectedDate = nil
                             }
                             .font(.system(size: 14, weight: .medium))
@@ -109,10 +104,19 @@ struct TaskListView: View {
                     .animation(.easeInOut(duration: 0.2), value: visibleMonth)
                 }
 
-                // ── Month grid: always in hierarchy, collapsed behind week strip ──
+                // ── Month grid: VStack (non-lazy) so all months render immediately ──
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(spacing: 0) {
+                        VStack(spacing: 0) {
+                            // Anchor view to track scroll offset via GeometryReader
+                            GeometryReader { geo in
+                                Color.clear.preference(
+                                    key: CalScrollOffsetKey.self,
+                                    value: -geo.frame(in: .named("calendarScroll")).minY
+                                )
+                            }
+                            .frame(height: 0)
+
                             ForEach(months, id: \.self) { month in
                                 VStack(spacing: 0) {
                                     HStack {
@@ -131,35 +135,36 @@ struct TaskListView: View {
                                     )
                                     .environmentObject(taskManager)
                                     .environmentObject(dodoManager)
-                                    .onAppear {
-                                        if !showWeekStrip { visibleMonth = month }
-                                    }
                                 }
                                 .id(monthID(month))
                             }
                         }
                     }
-                    .onAppear {
-                        Task {
-                            try? await Task.sleep(nanoseconds: 150_000_000)
-                            visibleMonth = Calendar.current.date(
-                                from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-                            proxy.scrollTo(monthID(visibleMonth), anchor: .top)
+                    .coordinateSpace(name: "calendarScroll")
+                    .onPreferenceChange(CalScrollOffsetKey.self) { offset in
+                        guard !showWeekStrip else { return }
+                        // Each section ≈ 395px (label 35px + grid 360px)
+                        let index = max(0, min(months.count - 1, Int(offset / 395)))
+                        let month = months[index]
+                        if monthID(month) != monthID(visibleMonth) {
+                            visibleMonth = month
                         }
                     }
-                    .onChange(of: scrolledMonthID) { id in
-                        // Today button sets scrolledMonthID → proxy jumps to it
-                        if let id {
-                            proxy.scrollTo(id, anchor: .top)
-                            scrolledMonthID = nil
+                    .onAppear {
+                        // Non-lazy VStack: all months are rendered → scrollTo works instantly
+                        proxy.scrollTo(monthID(visibleMonth), anchor: .top)
+                    }
+                    .onChange(of: scrollTarget) { target in
+                        if let target {
+                            withAnimation(.easeInOut(duration: 0.35)) {
+                                proxy.scrollTo(target, anchor: .top)
+                            }
+                            scrollTarget = nil
                         }
                     }
                     .onChange(of: showWeekStrip) { isShowing in
                         if !isShowing {
-                            Task {
-                                try? await Task.sleep(nanoseconds: 50_000_000)
-                                proxy.scrollTo(monthID(visibleMonth), anchor: .top)
-                            }
+                            proxy.scrollTo(monthID(visibleMonth), anchor: .top)
                         }
                     }
                 }
@@ -750,6 +755,15 @@ struct DateCell: View {
             .frame(width: 40, height: 40)
         }
         .frame(width: 44)
+    }
+}
+
+// MARK: - Scroll Offset Preference Key
+
+struct CalScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
