@@ -11,192 +11,36 @@ struct TaskListView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
 
-    @State private var selectedDate: Date? = nil
+    @State private var selectedDate: Date = Date().startOfDay
     @State private var draggingTask: TodoTask? = nil
     @State private var showingAddTask = false
-    @State private var showWeekStrip = false
-    @State private var visibleMonth: Date = Calendar.current.date(
-        from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-    @State private var scrollTarget: String? = nil
-
-    private var months: [Date] {
-        let cal = Calendar.current
-        let base = cal.date(from: cal.dateComponents([.year, .month], from: Date()))!
-        return (-3...12).compactMap { cal.date(byAdding: .month, value: $0, to: base) }
-    }
-
-    private static let monthFormatter: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM"; return f
-    }()
-
-    private func monthID(_ date: Date) -> String {
-        Self.monthFormatter.string(from: date)
-    }
-
-
-    private var isOnCurrentMonth: Bool {
-        Calendar.current.isDate(visibleMonth,
-            equalTo: Calendar.current.date(from: Calendar.current.dateComponents([.year,.month], from: Date()))!,
-            toGranularity: .month)
-    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
 
-                // ── Header ──────────────────────────────────────────────
-                if showWeekStrip {
-                    HStack {
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                showWeekStrip = false
-                                selectedDate = nil
-                            }
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text(visibleMonth, format: .dateTime.month(.wide).year())
-                                    .font(.system(size: 15, weight: .semibold))
-                            }
-                            .foregroundColor(.dodoOrange)
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    .padding(.bottom, 2)
-
-                    WeekCalendarView(
-                        selectedDate: Binding(
-                            get: { selectedDate ?? visibleMonth },
-                            set: { newDate in
-                                selectedDate = newDate
-                                visibleMonth = Calendar.current.date(
-                                    from: Calendar.current.dateComponents([.year, .month], from: newDate))!
-                            }
-                        )
-                    )
+                // ── Week strip (always visible) ──────────────────────────
+                WeekCalendarView(selectedDate: $selectedDate)
                     .environmentObject(taskManager)
 
-                } else {
-                    HStack {
-                        Text(visibleMonth, format: .dateTime.month(.wide).year())
-                            .font(.system(size: 17, weight: .semibold))
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.2), value: visibleMonth)
-                        Spacer()
-                        if !isOnCurrentMonth {
-                            Button("Today") {
-                                visibleMonth = Calendar.current.date(
-                                    from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-                                scrollTarget = monthID(visibleMonth)
-                                selectedDate = nil
-                            }
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.dodoOrange)
-                            .transition(.opacity)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    .padding(.bottom, 2)
-                    .animation(.easeInOut(duration: 0.2), value: visibleMonth)
-                }
-
-                // ── Month grid: VStack (non-lazy) so all months render immediately ──
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            // Anchor view to track scroll offset via GeometryReader
-                            GeometryReader { geo in
-                                Color.clear.preference(
-                                    key: CalScrollOffsetKey.self,
-                                    value: -geo.frame(in: .named("calendarScroll")).minY
-                                )
-                            }
-                            .frame(height: 0)
-
-                            ForEach(months, id: \.self) { month in
-                                VStack(spacing: 0) {
-                                    HStack {
-                                        Text(month, format: .dateTime.month(.wide).year())
-                                            .font(.system(size: 13, weight: .semibold))
-                                            .foregroundColor(.secondary)
-                                            .padding(.horizontal)
-                                            .padding(.top, 12)
-                                            .padding(.bottom, 4)
-                                        Spacer()
-                                    }
-                                    MonthGridView(
-                                        displayedMonth: .constant(month),
-                                        selectedDate: $selectedDate,
-                                        draggingTask: $draggingTask
-                                    )
-                                    .environmentObject(taskManager)
-                                    .environmentObject(dodoManager)
-                                }
-                                .id(monthID(month))
-                            }
-                        }
-                    }
-                    .coordinateSpace(name: "calendarScroll")
-                    .onPreferenceChange(CalScrollOffsetKey.self) { offset in
-                        guard !showWeekStrip else { return }
-                        // Each section ≈ 395px (label 35px + grid 360px)
-                        let index = max(0, min(months.count - 1, Int(offset / 395)))
-                        let month = months[index]
-                        if monthID(month) != monthID(visibleMonth) {
-                            visibleMonth = month
-                        }
-                    }
-                    .onAppear {
-                        // Non-lazy VStack: all months are rendered → scrollTo works instantly
-                        proxy.scrollTo(monthID(visibleMonth), anchor: .top)
-                    }
-                    .onChange(of: scrollTarget) { target in
-                        if let target {
-                            withAnimation(.easeInOut(duration: 0.35)) {
-                                proxy.scrollTo(target, anchor: .top)
-                            }
-                            scrollTarget = nil
-                        }
-                    }
-                    .onChange(of: showWeekStrip) { isShowing in
-                        if !isShowing {
-                            proxy.scrollTo(monthID(visibleMonth), anchor: .top)
-                        }
-                    }
-                }
-                // Collapse to zero (stay alive) when week strip is visible
-                .frame(maxHeight: showWeekStrip ? 0 : .infinity)
-                .clipped()
+                Divider().background(Color.white.opacity(0.08))
 
                 // ── Task list for selected date ──────────────────────────
-                if let date = selectedDate {
-                    Divider().background(Color.white.opacity(0.08))
-                    TaskDayList(selectedDate: date, draggingTask: $draggingTask)
-                        .environmentObject(taskManager)
-                        .environmentObject(dodoManager)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .onChange(of: selectedDate) { date in
-                if date != nil && !showWeekStrip {
-                    withAnimation(.easeInOut(duration: 0.25)) { showWeekStrip = true }
-                }
+                TaskDayList(selectedDate: selectedDate, draggingTask: $draggingTask)
+                    .environmentObject(taskManager)
+                    .environmentObject(dodoManager)
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddTask = true }) {
-                        Image(systemName: "plus").fontWeight(.semibold)
-                    }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Text(selectedDate, format: .dateTime.weekday(.wide).month(.wide).day())
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.primary)
                 }
             }
             .sheet(isPresented: $showingAddTask) {
-                AddTaskView(defaultDate: selectedDate ?? Date().startOfDay)
+                AddTaskView(defaultDate: selectedDate)
                     .environmentObject(taskManager)
             }
         }
@@ -655,10 +499,10 @@ struct WeekCalendarView: View {
     @Binding var selectedDate: Date
     @EnvironmentObject var taskManager: TaskManager
 
-    // 3 weeks back → 3 weeks forward = 43 days centred on today
+    // 60 days back → 60 days forward centred on today
     private var dates: [Date] {
         let cal = Calendar.current
-        return (-21...21).compactMap {
+        return (-60...60).compactMap {
             cal.date(byAdding: .day, value: $0, to: Date().startOfDay)
         }
     }
@@ -666,7 +510,7 @@ struct WeekCalendarView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     ForEach(dates, id: \.self) { date in
                         DateCell(
                             date: date,
@@ -675,11 +519,15 @@ struct WeekCalendarView: View {
                             hasTasks: taskManager.hasTasks(for: date)
                         )
                         .id(date)
-                        .onTapGesture { selectedDate = date.startOfDay }
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedDate = date.startOfDay
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 8)
+                .padding(.vertical, 10)
             }
             .onAppear {
                 proxy.scrollTo(selectedDate.startOfDay, anchor: .center)
@@ -690,7 +538,8 @@ struct WeekCalendarView: View {
                 }
             }
         }
-        .frame(height: 90)
+        .frame(height: 95)
+        .background(Color.black)
     }
 }
 
@@ -755,15 +604,6 @@ struct DateCell: View {
             .frame(width: 40, height: 40)
         }
         .frame(width: 44)
-    }
-}
-
-// MARK: - Scroll Offset Preference Key
-
-struct CalScrollOffsetKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
     }
 }
 
