@@ -15,20 +15,28 @@ struct TaskListView: View {
     @State private var draggingTask: TodoTask? = nil
     @State private var showingAddTask = false
     @State private var showWeekStrip = false
-    // visibleMonth is the single source of truth for which month is in view
     @State private var visibleMonth: Date = Calendar.current.date(
         from: Calendar.current.dateComponents([.year, .month], from: Date()))!
+    @State private var scrolledMonthID: String? = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM"
+        return f.string(from: Date())
+    }()
 
-    // Generate months: 48 past → today → 48 future
     private var months: [Date] {
         let cal = Calendar.current
         let base = cal.date(from: cal.dateComponents([.year, .month], from: Date()))!
-        return (-48...48).compactMap { cal.date(byAdding: .month, value: $0, to: base) }
+        return (-6...18).compactMap { cal.date(byAdding: .month, value: $0, to: base) }
     }
 
+    private static let monthFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM"; return f
+    }()
+
     private func monthID(_ date: Date) -> String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM"; return f.string(from: date)
+        Self.monthFormatter.string(from: date)
     }
+
+    private var todayMonthID: String { monthID(Date()) }
 
     private var isOnCurrentMonth: Bool {
         Calendar.current.isDate(visibleMonth,
@@ -40,7 +48,7 @@ struct TaskListView: View {
         NavigationStack {
             VStack(spacing: 0) {
 
-                // ── Conditional header (week strip vs month title) ────
+                // ── Header ──────────────────────────────────────────────
                 if showWeekStrip {
                     HStack {
                         Button(action: {
@@ -84,11 +92,11 @@ struct TaskListView: View {
                         Spacer()
                         if !isOnCurrentMonth {
                             Button("Today") {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    visibleMonth = Calendar.current.date(
-                                        from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-                                    selectedDate = nil
-                                }
+                                // Update both state vars so scroll jumps correctly
+                                visibleMonth = Calendar.current.date(
+                                    from: Calendar.current.dateComponents([.year, .month], from: Date()))!
+                                scrolledMonthID = todayMonthID
+                                selectedDate = nil
                             }
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.dodoOrange)
@@ -101,8 +109,7 @@ struct TaskListView: View {
                     .animation(.easeInOut(duration: 0.2), value: visibleMonth)
                 }
 
-                // ── Month grid: ALWAYS in hierarchy, collapsed when week strip is shown ──
-                // Keeping it alive prevents scroll position loss when toggling modes
+                // ── Month grid: always in hierarchy, collapsed behind week strip ──
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVStack(spacing: 0) {
@@ -124,31 +131,42 @@ struct TaskListView: View {
                                     )
                                     .environmentObject(taskManager)
                                     .environmentObject(dodoManager)
-                                    .id(monthID(month))
                                     .onAppear {
-                                        // Only update visibleMonth when grid is active
-                                        // (not when collapsed behind week strip)
                                         if !showWeekStrip { visibleMonth = month }
                                     }
                                 }
+                                .id(monthID(month))
                             }
                         }
                     }
                     .onAppear {
-                        proxy.scrollTo(monthID(visibleMonth), anchor: .top)
+                        // Small delay ensures LazyVStack has rendered today's month
+                        Task {
+                            try? await Task.sleep(nanoseconds: 50_000_000)
+                            proxy.scrollTo(monthID(visibleMonth), anchor: .top)
+                        }
                     }
-                    .onChange(of: visibleMonth) { month in
-                        if isOnCurrentMonth {
-                            withAnimation(.easeInOut(duration: 0.4)) {
-                                proxy.scrollTo(monthID(month), anchor: .top)
+                    .onChange(of: scrolledMonthID) { id in
+                        // Today button sets scrolledMonthID → proxy jumps to it
+                        if let id {
+                            proxy.scrollTo(id, anchor: .top)
+                            scrolledMonthID = nil
+                        }
+                    }
+                    .onChange(of: showWeekStrip) { isShowing in
+                        if !isShowing {
+                            Task {
+                                try? await Task.sleep(nanoseconds: 50_000_000)
+                                proxy.scrollTo(monthID(visibleMonth), anchor: .top)
                             }
                         }
                     }
                 }
-                // Collapse to zero height (but stay alive) when week strip is showing
+                // Collapse to zero (stay alive) when week strip is visible
                 .frame(maxHeight: showWeekStrip ? 0 : .infinity)
                 .clipped()
 
+                // ── Task list for selected date ──────────────────────────
                 if let date = selectedDate {
                     Divider().background(Color.white.opacity(0.08))
                     TaskDayList(selectedDate: date, draggingTask: $draggingTask)

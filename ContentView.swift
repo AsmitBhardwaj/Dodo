@@ -12,7 +12,7 @@ struct ContentView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
     @State private var selectedTab: AppTab = .today
-    @State private var showGreeting = true          // ADD THIS
+    @State private var showGreeting = true          // ADD T
 
     enum AppTab{case today, tasks, dodo}
 
