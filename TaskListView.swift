@@ -12,28 +12,62 @@ struct TaskListView: View {
     @EnvironmentObject var dodoManager: DodoManager
 
     @State private var selectedDate: Date? = nil
-    @State private var displayedMonth: Date = Date().startOfDay
+    @State private var currentPage: Int = 200      // 200 = today's month (anchor)
     @State private var draggingTask: TodoTask? = nil
     @State private var showingAddTask = false
+
+    private let anchor = 200
+
+    private func monthForPage(_ page: Int) -> Date {
+        let base = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date()))!
+        return Calendar.current.date(byAdding: .month, value: page - anchor, to: base)!
+    }
+
+    private var displayedMonth: Date { monthForPage(currentPage) }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
 
-                // ── Month navigation header ──────────────────────────────
-                MonthNavHeader(displayedMonth: $displayedMonth)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    .padding(.bottom, 2)
+                // ── Month title + Today jump ─────────────────────────────
+                HStack {
+                    Text(displayedMonth, format: .dateTime.month(.wide).year())
+                        .font(.system(size: 17, weight: .semibold))
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.2), value: currentPage)
+                    Spacer()
+                    if currentPage != anchor {
+                        Button("Today") {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                currentPage = anchor
+                                selectedDate = nil
+                            }
+                        }
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.dodoOrange)
+                        .transition(.opacity)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 2)
+                .animation(.easeInOut(duration: 0.2), value: currentPage)
 
-                // ── Static month grid (always visible) ───────────────────
-                MonthGridView(
-                    displayedMonth: $displayedMonth,
-                    selectedDate: $selectedDate,
-                    draggingTask: $draggingTask
-                )
-                .environmentObject(taskManager)
-                .environmentObject(dodoManager)
+                // ── Swipeable month grid (replaces arrow buttons) ─────────
+                TabView(selection: $currentPage) {
+                    ForEach(0..<400, id: \.self) { page in
+                        MonthGridView(
+                            displayedMonth: .constant(monthForPage(page)),
+                            selectedDate: $selectedDate,
+                            draggingTask: $draggingTask
+                        )
+                        .environmentObject(taskManager)
+                        .environmentObject(dodoManager)
+                        .tag(page)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 390)
 
                 if let date = selectedDate {
                     Divider().background(Color.white.opacity(0.08))
@@ -56,48 +90,6 @@ struct TaskListView: View {
                 AddTaskView(defaultDate: selectedDate ?? Date().startOfDay)
                     .environmentObject(taskManager)
             }
-        }
-    }
-}
-
-// MARK: - Month Navigation Header
-
-struct MonthNavHeader: View {
-    @Binding var displayedMonth: Date
-
-    private var title: String {
-        let f = DateFormatter()
-        f.dateFormat = "MMMM yyyy"
-        return f.string(from: displayedMonth)
-    }
-
-    var body: some View {
-        HStack {
-            Button(action: { shift(-1) }) {
-                Image(systemName: "chevron.left")
-                    .foregroundColor(.dodoOrange)
-                    .font(.system(size: 14, weight: .semibold))
-            }
-
-            Spacer()
-
-            Text(title)
-                .font(.system(size: 17, weight: .semibold))
-
-            Spacer()
-
-            Button(action: { shift(1) }) {
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.dodoOrange)
-                    .font(.system(size: 14, weight: .semibold))
-            }
-        }
-        .padding(.vertical, 4)
-    }
-
-    private func shift(_ delta: Int) {
-        if let d = Calendar.current.date(byAdding: .month, value: delta, to: displayedMonth) {
-            withAnimation(.spring(response: 0.35)) { displayedMonth = d }
         }
     }
 }

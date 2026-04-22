@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D0EDFCB2F9952910013A894 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EDFCA2F99528D0013A894 /* CalendarView.swift */; };
 		3DF27DAE2F8B484400FC69F1 /* Dodo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DAA2F8B484400FC69F1 /* Dodo.swift */; };
 		3DF27DAF2F8B484400FC69F1 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DAD2F8B484400FC69F1 /* TaskListView.swift */; };
 		3DF27DB02F8B484400FC69F1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF27DA92F8B484400FC69F1 /* ContentView.swift */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3D0EDFCA2F99528D0013A894 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		3D2404392F8B224C00F044D7 /* Dodo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dodo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DF27DA82F8B484400FC69F1 /* AddTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskView.swift; sourceTree = "<group>"; };
 		3DF27DA92F8B484400FC69F1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -54,6 +56,7 @@
 				3DF27DAB2F8B484400FC69F1 /* DodoApp.swift */,
 				3DF27DAC2F8B484400FC69F1 /* Task.swift */,
 				3DF27DAD2F8B484400FC69F1 /* TaskListView.swift */,
+				3D0EDFCA2F99528D0013A894 /* CalendarView.swift */,
 				3D24043A2F8B224C00F044D7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -142,6 +145,7 @@
 			files = (
 				3DF27DAE2F8B484400FC69F1 /* Dodo.swift in Sources */,
 				3DF27DAF2F8B484400FC69F1 /* TaskListView.swift in Sources */,
+				3D0EDFCB2F9952910013A894 /* CalendarView.swift in Sources */,
 				3DF27DB02F8B484400FC69F1 /* ContentView.swift in Sources */,
 				3DF27DB12F8B484400FC69F1 /* DodoApp.swift in Sources */,
 				3DF27DB22F8B484400FC69F1 /* AddTaskView.swift in Sources */,
