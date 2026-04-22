@@ -12,62 +12,142 @@ struct TaskListView: View {
     @EnvironmentObject var dodoManager: DodoManager
 
     @State private var selectedDate: Date? = nil
-    @State private var currentPage: Int = 200      // 200 = today's month (anchor)
     @State private var draggingTask: TodoTask? = nil
     @State private var showingAddTask = false
+    @State private var showWeekStrip = false
+    // visibleMonth is the single source of truth for which month is in view
+    @State private var visibleMonth: Date = Calendar.current.date(
+        from: Calendar.current.dateComponents([.year, .month], from: Date()))!
 
-    private let anchor = 200
-
-    private func monthForPage(_ page: Int) -> Date {
-        let base = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date()))!
-        return Calendar.current.date(byAdding: .month, value: page - anchor, to: base)!
+    // Generate months: 48 past → today → 48 future
+    private var months: [Date] {
+        let cal = Calendar.current
+        let base = cal.date(from: cal.dateComponents([.year, .month], from: Date()))!
+        return (-48...48).compactMap { cal.date(byAdding: .month, value: $0, to: base) }
     }
 
-    private var displayedMonth: Date { monthForPage(currentPage) }
+    private func monthID(_ date: Date) -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM"; return f.string(from: date)
+    }
+
+    private var isOnCurrentMonth: Bool {
+        Calendar.current.isDate(visibleMonth,
+            equalTo: Calendar.current.date(from: Calendar.current.dateComponents([.year,.month], from: Date()))!,
+            toGranularity: .month)
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
 
-                // ── Month title + Today jump ─────────────────────────────
-                HStack {
-                    Text(displayedMonth, format: .dateTime.month(.wide).year())
-                        .font(.system(size: 17, weight: .semibold))
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.2), value: currentPage)
-                    Spacer()
-                    if currentPage != anchor {
-                        Button("Today") {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                currentPage = anchor
+                if showWeekStrip {
+                    // ── Week strip mode ───────────────────────────────────
+                    HStack {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                showWeekStrip = false
                                 selectedDate = nil
                             }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text(visibleMonth, format: .dateTime.month(.wide).year())
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundColor(.dodoOrange)
                         }
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.dodoOrange)
-                        .transition(.opacity)
+                        Spacer()
                     }
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                .padding(.bottom, 2)
-                .animation(.easeInOut(duration: 0.2), value: currentPage)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 2)
 
-                // ── Swipeable month grid (replaces arrow buttons) ─────────
-                TabView(selection: $currentPage) {
-                    ForEach(0..<400, id: \.self) { page in
-                        MonthGridView(
-                            displayedMonth: .constant(monthForPage(page)),
-                            selectedDate: $selectedDate,
-                            draggingTask: $draggingTask
+                    WeekCalendarView(
+                        selectedDate: Binding(
+                            get: { selectedDate ?? visibleMonth },
+                            set: { newDate in
+                                selectedDate = newDate
+                                // keep visibleMonth in sync with week strip navigation
+                                visibleMonth = Calendar.current.date(
+                                    from: Calendar.current.dateComponents([.year, .month], from: newDate))!
+                            }
                         )
-                        .environmentObject(taskManager)
-                        .environmentObject(dodoManager)
-                        .tag(page)
+                    )
+                    .environmentObject(taskManager)
+
+                } else {
+                    // ── Month grid mode ───────────────────────────────────
+                    HStack {
+                        Text(visibleMonth, format: .dateTime.month(.wide).year())
+                            .font(.system(size: 17, weight: .semibold))
+                            .contentTransition(.numericText())
+                            .animation(.easeInOut(duration: 0.2), value: visibleMonth)
+                        Spacer()
+                        if !isOnCurrentMonth {
+                            Button("Today") {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    visibleMonth = Calendar.current.date(
+                                        from: Calendar.current.dateComponents([.year, .month], from: Date()))!
+                                    selectedDate = nil
+                                }
+                            }
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.dodoOrange)
+                            .transition(.opacity)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 2)
+                    .animation(.easeInOut(duration: 0.2), value: visibleMonth)
+
+                    // ── Vertical scrolling month grid ─────────────────────
+                    ScrollViewReader { proxy in
+                        ScrollView(.vertical, showsIndicators: false) {
+                            LazyVStack(spacing: 0, pinnedViews: []) {
+                                ForEach(months, id: \.self) { month in
+                                    VStack(spacing: 0) {
+                                        // Month label inside scroll
+                                        HStack {
+                                            Text(month, format: .dateTime.month(.wide).year())
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .foregroundColor(.secondary)
+                                                .padding(.horizontal)
+                                                .padding(.top, 12)
+                                                .padding(.bottom, 4)
+                                            Spacer()
+                                        }
+                                        MonthGridView(
+                                            displayedMonth: .constant(month),
+                                            selectedDate: $selectedDate,
+                                            draggingTask: $draggingTask
+                                        )
+                                        .environmentObject(taskManager)
+                                        .environmentObject(dodoManager)
+                                        .id(monthID(month))
+                                        // Track visibility: update visibleMonth as user scrolls
+                                        .onAppear {
+                                            visibleMonth = month
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .onAppear {
+                            // Jump to today on first load with no animation
+                            proxy.scrollTo(monthID(visibleMonth), anchor: .top)
+                        }
+                        .onChange(of: visibleMonth) { month in
+                            // "Today" button jumps back
+                            if isOnCurrentMonth {
+                                withAnimation(.easeInOut(duration: 0.4)) {
+                                    proxy.scrollTo(monthID(month), anchor: .top)
+                                }
+                            }
+                        }
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 390)
 
                 if let date = selectedDate {
                     Divider().background(Color.white.opacity(0.08))
@@ -75,6 +155,11 @@ struct TaskListView: View {
                         .environmentObject(taskManager)
                         .environmentObject(dodoManager)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .onChange(of: selectedDate) { date in
+                if date != nil && !showWeekStrip {
+                    withAnimation(.easeInOut(duration: 0.25)) { showWeekStrip = true }
                 }
             }
             .navigationTitle("")
@@ -538,6 +623,115 @@ extension Color {
 extension DateFormatter {
     @discardableResult
     func apply(_ block: (DateFormatter) -> Void) -> DateFormatter { block(self); return self }
+}
+
+// MARK: - Week Calendar Strip
+
+struct WeekCalendarView: View {
+    @Binding var selectedDate: Date
+    @EnvironmentObject var taskManager: TaskManager
+
+    // 3 weeks back → 3 weeks forward = 43 days centred on today
+    private var dates: [Date] {
+        let cal = Calendar.current
+        return (-21...21).compactMap {
+            cal.date(byAdding: .day, value: $0, to: Date().startOfDay)
+        }
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(dates, id: \.self) { date in
+                        DateCell(
+                            date: date,
+                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                            progress: taskManager.progress(for: date),
+                            hasTasks: taskManager.hasTasks(for: date)
+                        )
+                        .id(date)
+                        .onTapGesture { selectedDate = date.startOfDay }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            .onAppear {
+                proxy.scrollTo(selectedDate.startOfDay, anchor: .center)
+            }
+            .onChange(of: selectedDate) { date in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(date.startOfDay, anchor: .center)
+                }
+            }
+        }
+        .frame(height: 90)
+    }
+}
+
+// MARK: - Date Cell (week strip)
+
+struct DateCell: View {
+    let date: Date
+    let isSelected: Bool
+    let progress: Double
+    let hasTasks: Bool
+
+    private var isToday: Bool { Calendar.current.isDateInToday(date) }
+    private var isPast:  Bool { date < Date().startOfDay }
+
+    private var dayLetter: String {
+        DateFormatter().apply { $0.dateFormat = "EEE" }.string(from: date)
+    }
+    private var dayNumber: String {
+        DateFormatter().apply { $0.dateFormat = "d" }.string(from: date)
+    }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(dayLetter)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(isSelected ? .dodoOrange : .secondary)
+
+            ZStack {
+                // Progress ring
+                if hasTasks {
+                    Circle()
+                        .stroke(Color.white.opacity(0.1), lineWidth: 2.5)
+                        .frame(width: 38, height: 38)
+                    Circle()
+                        .trim(from: 0, to: progress)
+                        .stroke(Color.dodoOrange.opacity(0.85),
+                                style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 38, height: 38)
+                }
+
+                // Fill for today / selected
+                Circle()
+                    .fill(
+                        isSelected && isToday ? Color.dodoOrange :
+                        isSelected            ? Color.dodoOrange.opacity(0.25) :
+                        isToday               ? Color.dodoOrange.opacity(0.15) :
+                                                Color.clear
+                    )
+                    .frame(width: 32, height: 32)
+
+                Text(dayNumber)
+                    .font(.system(size: 15,
+                                  weight: isToday || isSelected ? .bold : .regular))
+                    .foregroundColor(
+                        isSelected && isToday ? .black :
+                        isSelected            ? .dodoOrange :
+                        isPast                ? .secondary :
+                                                .primary
+                    )
+            }
+            .frame(width: 40, height: 40)
+        }
+        .frame(width: 44)
+    }
 }
 
 #Preview {
