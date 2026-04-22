@@ -182,7 +182,8 @@ struct TodayView: View {
                             AllDoneCard()
                                 .padding(.horizontal)
                         } else {
-                            // Reuse TaskRowView from TaskListView.swift
+                            // Reuse TaskRowView from TaskListView.swif
+                            //we perfected it lets goo
                             VStack(spacing: 0) {
                                 ForEach(todayTasks.prefix(5)) { task in
                                     TaskCard(task: task)
