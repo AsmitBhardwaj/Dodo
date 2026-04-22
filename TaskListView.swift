@@ -35,12 +35,13 @@ struct TaskListView: View {
                 .environmentObject(taskManager)
                 .environmentObject(dodoManager)
 
-                Divider().background(Color.white.opacity(0.08))
-
-                // ── Day detail list (bottom half) ────────────────────────
-                TaskDayList(selectedDate: selectedDate, draggingTask: $draggingTask)
-                    .environmentObject(taskManager)
-                    .environmentObject(dodoManager)
+                if let date = selectedDate {
+                    Divider().background(Color.white.opacity(0.08))
+                    TaskDayList(selectedDate: date, draggingTask: $draggingTask)
+                        .environmentObject(taskManager)
+                        .environmentObject(dodoManager)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -105,7 +106,7 @@ struct MonthNavHeader: View {
 
 struct MonthGridView: View {
     @Binding var displayedMonth: Date
-    @Binding var selectedDate: Date
+    @Binding var selectedDate: Date?
     @Binding var draggingTask: TodoTask?
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
@@ -156,7 +157,7 @@ struct MonthGridView: View {
                         if let date = date {
                             ChipDayCell(
                                 date: date,
-                                isSelected: date.isSameDay(as: selectedDate),
+                                isSelected: selectedDate.map { date.isSameDay(as: $0) } ?? false,
                                 tasks: taskManager.tasks(for: date),
                                 maxTasks: maxTasksThisMonth
                             )
