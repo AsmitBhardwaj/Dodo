@@ -39,7 +39,7 @@ struct ContentView: View {
 
             if showGreeting {                        // ADD THIS BLOCK
                 GreetingSplashView(greeting: currentGreeting, isShowing: $showGreeting)
-                    .transition(.opacity)
+                    .transition(AnyTransition.opacity)
                     .zIndex(1)
             }
         }
@@ -185,7 +185,7 @@ struct TodayView: View {
                             // Reuse TaskRowView from TaskListView.swift
                             VStack(spacing: 0) {
                                 ForEach(todayTasks.prefix(5)) { task in
-                                    TaskRowView(task: task)
+                                    TaskCard(task: task)
                                         .padding(.horizontal)
                                         .padding(.vertical, 8)
                                     if task.id != todayTasks.prefix(5).last?.id {

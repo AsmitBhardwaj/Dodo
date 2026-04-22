@@ -4,21 +4,30 @@
 //
 
 import SwiftUI
+import Combine
 
 struct AddTaskView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var taskManager: TaskManager
-    
+
+    var defaultDate: Date = Date().startOfDay
+
     @State private var taskTitle = ""
-    @State private var selectedCategory: TodoTask.TaskCategory = .personal
+    @State private var selectedCategory: TodoTask.TaskCategory = .school
     @State private var rewardValue = 10
-    
+    @State private var dueDate: Date
+
+    init(defaultDate: Date = Date().startOfDay) {
+        self.defaultDate = defaultDate
+        _dueDate = State(initialValue: defaultDate)
+    }
+
     var body: some View {
         NavigationView {
             Form {
                 Section("Task Details") {
                     TextField("What do you need to do?", text: $taskTitle)
-                    
+
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(TodoTask.TaskCategory.allCases, id: \.self) { category in
                             HStack {
@@ -28,12 +37,15 @@ struct AddTaskView: View {
                             .tag(category)
                         }
                     }
-                    
-                    Stepper("Reward: \(rewardValue) points", value: $rewardValue, in: 5...50, step: 5)
+
+                    DatePicker("Due Date", selection: $dueDate, displayedComponents: .date)
+                        .tint(.dodoOrange)
+
+                    Stepper("Reward: \(rewardValue) XP", value: $rewardValue, in: 5...50, step: 5)
                 }
-                
+
                 Section {
-                    Text("Completing this task will give Dodo \(rewardValue) points!")
+                    Text("Completing this task gives Dodo \(rewardValue) XP!")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -42,26 +54,23 @@ struct AddTaskView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancel") { dismiss() }
                 }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Add") {
-                        addTask()
-                    }
-                    .disabled(taskTitle.isEmpty)
+                    Button("Add") { addTask() }
+                        .disabled(taskTitle.isEmpty)
+                        .tint(.dodoOrange)
                 }
             }
         }
     }
-    
+
     private func addTask() {
         let newTask = TodoTask(
             title: taskTitle,
             category: selectedCategory,
-            rewardValue: rewardValue
+            rewardValue: rewardValue,
+            dueDate: dueDate.startOfDay
         )
         taskManager.addTask(newTask)
         dismiss()
@@ -71,5 +80,4 @@ struct AddTaskView: View {
 #Preview {
     AddTaskView()
         .environmentObject(TaskManager())
-        .preferredColorScheme(.dark)
 }
