@@ -841,10 +841,11 @@ struct ActivityHeatmapView: View {
 
     private func cellColor(for date: Date?) -> Color {
         guard let date else {
-            return Color.white.opacity(0.04)
+            return Color.clear
         }
+        
         guard taskManager.hasTasks(for: date) else {
-            return Color.white.opacity(0.06)
+            return Color.white.opacity(0.07)
         }
         let p = taskManager.progress(for: date)
         switch p {
@@ -909,14 +910,14 @@ struct ActivityHeatmapView: View {
                         VStack(spacing: 3) {
                             ForEach(Array(col.enumerated()), id: \.offset) { _, date in
                                 RoundedRectangle(cornerRadius: 2)
-                                    .fill(cellColor(for: date))
+                                    .fill(date == nil ? Color.clear : cellColor(for: date))
                                     .frame(width: colWidth, height: colWidth)
                             }
                         }
                     }
                 }
             }
-            .frame(height: CGFloat(7) * 20)
+            .frame(height: CGFloat(7) * ((UIScreen.main.bounds.width - 60) / CGFloat(totalWeeks) + 3) - 3)
 
             // Legend
             HStack(spacing: 6) {
