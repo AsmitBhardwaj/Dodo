@@ -917,7 +917,7 @@ struct ActivityHeatmapView: View {
                     }
                 }
             }
-            .frame(height: CGFloat(7) * ((UIScreen.main.bounds.width - 60) / CGFloat(totalWeeks) + 3) - 3)
+            .aspectRatio(CGFloat(totalWeeks) / 7, contentMode: .fit)
 
             // Legend
             HStack(spacing: 6) {
