@@ -100,6 +100,7 @@ struct TodayView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
     @State private var showingAddTask = false
+    @State private var bannerDismissed = false
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -108,6 +109,22 @@ struct TodayView: View {
         case 12..<17: return "Good afternoon"
         default:      return "Good evening"
         }
+    }
+    private var missedYesterday: Bool {
+        let cal = Calendar.current
+        guard let yesterday = cal.date(byAdding: .day, value: -1, to: Date().startOfDay) else { return false }
+        guard taskManager.hasTasks(for: yesterday) else { return false }
+        return taskManager.progress(for: yesterday) < 0.5
+    }
+
+    private var missedYesterdayCount: Int {
+        let cal = Calendar.current
+        guard let yesterday = cal.date(byAdding: .day, value: -1, to: Date().startOfDay) else { return 0 }
+        return taskManager.tasks(for: yesterday).filter { !$0.isCompleted }.count
+    }
+
+    private var shouldShowRecoveryBanner: Bool {
+        missedYesterday && !bannerDismissed && completedToday.isEmpty
     }
 
     private var tagline: String {
@@ -170,6 +187,18 @@ struct TodayView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 8)
+                    
+                    // Recovery banner
+                    if shouldShowRecoveryBanner {
+                        RecoveryBannerCard(missedCount: missedYesterdayCount) {
+                            withAnimation(.spring(response: 0.4)) {
+                                bannerDismissed = true
+                            }
+                            UserDefaults.standard.set(Date(), forKey: "recoveryBannerDismissedDate")
+                        }
+                        .padding(.horizontal)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
 
                     // Mini stats row
                     UserStatsRow(
@@ -231,6 +260,16 @@ struct TodayView: View {
                     Spacer(minLength: 40)
                 }
             }
+            .onAppear {
+                if let date = UserDefaults.standard.object(forKey: "recoveryBannerDismissedDate") as? Date,
+                   Calendar.current.isDateInToday(date) {
+                    bannerDismissed = true
+                }
+                if missedYesterday {
+                    dodoManager.resetStreak()
+                }
+            }
+            .animation(.spring(response: 0.4), value: shouldShowRecoveryBanner)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -623,6 +662,73 @@ struct CategoryRow: View {
 
 extension Color {
     static let dodoOrange = Color(red: 0.976, green: 0.451, blue: 0.086)
+}
+
+// MARK: - Recovery Banner
+
+struct RecoveryBannerCard: View {
+    let missedCount: Int
+    let onDismiss: () -> Void
+
+    private var headline: String {
+        let options = [
+            "Yesterday's gone.",
+            "You missed yesterday.",
+            "Streak reset."
+        ]
+        return options[Calendar.current.component(.day, from: Date()) % options.count]
+    }
+
+    private var subtext: String {
+        let task = missedCount == 1 ? "task" : "tasks"
+        let options = [
+            "You had \(missedCount) \(task) sitting there. Not today.",
+            "\(missedCount) \(task) undone. That's done. Today isn't.",
+            "\(missedCount) \(task) left behind yesterday. Build again from now."
+        ]
+        return options[Calendar.current.component(.day, from: Date()) % options.count]
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Orange left accent bar
+            Rectangle()
+                .fill(Color.dodoOrange)
+                .frame(width: 3)
+                .clipShape(RoundedRectangle(cornerRadius: 2))
+
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(headline)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text(subtext)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .padding(6)
+                        .background(Color(.tertiarySystemBackground))
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+        }
+        .background(Color.dodoOrange.opacity(0.07))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.dodoOrange.opacity(0.2), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
 }
 
 #Preview {

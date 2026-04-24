@@ -2,61 +2,28 @@
 //  Dodo.swift
 //  Dodo
 //
-//  Personal growth stats — Focus, Mood, Consistency.
-//  These are YOUR stats, not a pet's.
+//  Focus, Mood, Consistency are now COMPUTED from real task data.
+//  DodoStats only stores what cannot be derived: level, streak, total count.
 //
 
 import Foundation
 import SwiftUI
 import Combine
 
-// MARK: - Stats Model
+// MARK: - Stored Stats (only what can't be derived)
 
 struct DodoStats: Codable {
-    /// Focus: how locked-in you are. Rises with task completions, drifts down with inactivity.
-    var focus: Double = 100.0
-    /// Mood: your motivation level. Any completion gives a boost.
-    var mood: Double = 100.0
-    /// Consistency: your health/routine score. Boosted by Health-category tasks.
-    var consistency: Double = 100.0
-
     var level: Int = 1
     var totalTasksCompleted: Int = 0
     var currentStreak: Int = 0
     var lastActiveDate: Date = Date()
 
-    // MARK: Computed
-
-    var averageStat: Double {
-        (focus + mood + consistency) / 3
-    }
-
-    var statusMessage: String {
-        switch averageStat {
-        case 80...100: return "You're in the zone"
-        case 60..<80:  return "Doing well, keep going"
-        case 40..<60:  return "Build some momentum"
-        case 20..<40:  return "Time to get back on track"
-        default:       return "Let's get moving"
-        }
-    }
-
-    var moodEmoji: String {
-        switch averageStat {
-        case 80...100: return "🔥"
-        case 60..<80:  return "💪"
-        case 40..<60:  return "😐"
-        case 20..<40:  return "😔"
-        default:       return "😴"
-        }
-    }
-
     var xpToNextLevel: Int {
         let thresholds = [10, 25, 45, 70, 100, 140, 190, 250, 320, 400]
         let idx = min(level - 1, thresholds.count - 1)
-        let current = idx > 0 ? thresholds[idx - 1] : 0
+        let prev = idx > 0 ? thresholds[idx - 1] : 0
         let next = thresholds[idx]
-        return max(0, next - totalTasksCompleted + current)
+        return max(0, next - totalTasksCompleted + prev)
     }
 }
 
@@ -72,31 +39,78 @@ class DodoManager: ObservableObject {
         } else {
             self.stats = DodoStats()
         }
-        recalculateDecayOnForeground()
     }
 
-    // MARK: - Foreground Decay
-    // Focus and mood naturally drift if you haven't been active.
-    // Called when app comes to foreground.
-    func recalculateDecayOnForeground() {
-        let hoursSinceActive = Date().timeIntervalSince(stats.lastActiveDate) / 3600
-        guard hoursSinceActive > 6 else { return }
+    // MARK: - Real Computed Stats
 
-        let decayHours = hoursSinceActive - 6
-        let focusDecay   = min(decayHours * 5, stats.focus)
-        let moodDecay    = min(decayHours * 3, stats.mood)
-
-        stats.focus = max(0, stats.focus - focusDecay)
-        stats.mood  = max(0, stats.mood  - moodDecay)
-        saveStats()
+    /// Focus = today's task completion rate (0-100).
+    /// If no tasks today yet, falls back to yesterday.
+    /// Honest: starts at 0% and you earn it through the day.
+    func focus(from taskManager: TaskManager) -> Double {
+        let today = Date().startOfDay
+        if taskManager.hasTasks(for: today) {
+            return taskManager.progress(for: today) * 100
+        }
+        let cal = Calendar.current
+        guard let yesterday = cal.date(byAdding: .day, value: -1, to: today),
+              taskManager.hasTasks(for: yesterday) else { return 0 }
+        return taskManager.progress(for: yesterday) * 100
     }
 
-    // MARK: - Task Completion (called from TaskCard)
+    /// Mood = weighted completion trend of the last 3 days.
+    /// Recent days count more. Reflects momentum, not just today.
+    /// No history = 50 (neutral, not a fake 100).
+    func mood(from taskManager: TaskManager) -> Double {
+        let cal = Calendar.current
+        let weights: [(Int, Double)] = [(-1, 0.5), (-2, 0.3), (-3, 0.2)]
+        var weightedTotal: Double = 0
+        var usedWeight: Double = 0
 
-    /// Call this when any task is completed.
+        for (offset, weight) in weights {
+            guard let date = cal.date(byAdding: .day, value: offset,
+                                      to: Date().startOfDay),
+                  taskManager.hasTasks(for: date) else { continue }
+            weightedTotal += taskManager.progress(for: date) * weight
+            usedWeight += weight
+        }
+
+        guard usedWeight > 0 else { return 50 }
+        return (weightedTotal / usedWeight) * 100
+    }
+
+    /// Consistency = average completion rate over the last 7 days.
+    /// Days with no tasks are excluded — not penalised.
+    func consistency(from taskManager: TaskManager) -> Double {
+        let cal = Calendar.current
+        var total: Double = 0
+        var days = 0
+
+        for i in 0..<7 {
+            guard let date = cal.date(byAdding: .day, value: -i,
+                                      to: Date().startOfDay),
+                  taskManager.hasTasks(for: date) else { continue }
+            total += taskManager.progress(for: date)
+            days += 1
+        }
+
+        guard days > 0 else { return 0 }
+        return (total / Double(days)) * 100
+    }
+
+    /// Status message derived from consistency — the most honest signal.
+    func statusMessage(from taskManager: TaskManager) -> String {
+        switch consistency(from: taskManager) {
+        case 80...100: return "You're in the zone"
+        case 60..<80:  return "Doing well, keep going"
+        case 40..<60:  return "Build some momentum"
+        case 20..<40:  return "Time to get back on track"
+        default:       return "Let's get moving"
+        }
+    }
+
+    // MARK: - Task Completion
+
     func taskCompleted(amount: Int) {
-        stats.focus    = min(100, stats.focus + Double(amount))
-        stats.mood     = min(100, stats.mood  + Double(amount) * 0.5)
         stats.totalTasksCompleted += 1
         stats.currentStreak += 1
         stats.lastActiveDate = Date()
@@ -104,17 +118,22 @@ class DodoManager: ObservableObject {
         saveStats()
     }
 
-    /// Call this when a Health-category task is completed.
     func healthTaskCompleted(amount: Int) {
-        stats.consistency = min(100, stats.consistency + Double(amount))
         taskCompleted(amount: amount)
+    }
+
+    func resetStreak() {
+        stats.currentStreak = 0
+        saveStats()
     }
 
     // MARK: - Private
 
     private func checkLevelUp() {
         let thresholds = [10, 25, 45, 70, 100, 140, 190, 250, 320, 400]
-        let newLevel = (thresholds.firstIndex(where: { stats.totalTasksCompleted < $0 }) ?? thresholds.count) + 1
+        let newLevel = (thresholds.firstIndex(where: {
+            stats.totalTasksCompleted < $0
+        }) ?? thresholds.count) + 1
         if newLevel > stats.level {
             stats.level = newLevel
         }
