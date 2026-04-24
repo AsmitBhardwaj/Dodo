@@ -32,7 +32,6 @@ struct ContentView: View {
             }
             .tint(Color.dodoOrange)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                dodoManager.recalculateDecayOnForeground()
                 withAnimation(.spring()) { showGreeting = true }
             }
 
@@ -418,13 +417,9 @@ struct GrowthView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    // Top stat cards
-                    HStack(spacing: 10) {
-                        GrowthStatCard(value: "\(dodoManager.stats.currentStreak)", label: "Day streak", icon: "flame.fill", color: .dodoOrange)
-                        GrowthStatCard(value: "\(dodoManager.stats.level)", label: "Level", icon: "star.fill", color: .yellow)
-                        GrowthStatCard(value: "\(dodoManager.stats.totalTasksCompleted)", label: "Completed", icon: "checkmark.seal.fill", color: .green)
-                    }
-                    .padding(.horizontal)
+                    // streak
+                    StreakHeaderCard()
+                        .padding(.horizontal)
 
                     // This week
                     VStack(alignment: .leading, spacing: 12) {
@@ -454,21 +449,21 @@ struct GrowthView: View {
                             PersonalStatRow(
                                 icon: "bolt.fill",
                                 label: "Focus",
-                                value: dodoManager.stats.focus,
+                                value: dodoManager.focus(from: taskManager),
                                 color: .dodoOrange,
                                 tip: "Drops when you go quiet. Stay active."
                             )
                             PersonalStatRow(
                                 icon: "heart.fill",
                                 label: "Mood",
-                                value: dodoManager.stats.mood,
+                                value: dodoManager.mood(from: taskManager),
                                 color: .pink,
                                 tip: "Do something. Anything. It compounds."
                             )
                             PersonalStatRow(
                                 icon: "arrow.triangle.2.circlepath",
                                 label: "Consistency",
-                                value: dodoManager.stats.consistency,
+                                value: dodoManager.consistency(from: taskManager),
                                 color: .green,
                                 tip: "Health tasks build the base. Don't skip them."
                             )
@@ -728,6 +723,105 @@ struct RecoveryBannerCard: View {
                 .stroke(Color.dodoOrange.opacity(0.2), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+// MARK: - Streak Header Card (Duolingo-style)
+
+struct StreakHeaderCard: View {
+    @EnvironmentObject var dodoManager: DodoManager
+    @EnvironmentObject var taskManager: TaskManager
+
+    private var weekDays: [(letter: String, completed: Bool, isToday: Bool, isFuture: Bool)] {
+        let cal = Calendar.current
+        let today = Date().startOfDay
+        let weekday = cal.component(.weekday, from: today)
+        let daysFromMonday = (weekday + 5) % 7
+        guard let monday = cal.date(byAdding: .day, value: -daysFromMonday, to: today) else { return [] }
+
+        return (0..<7).map { i in
+            guard let date = cal.date(byAdding: .day, value: i, to: monday) else {
+                return (letter: "-", completed: false, isToday: false, isFuture: false)
+            }
+            let isFuture = date > today
+            let isToday  = cal.isDateInToday(date)
+            let done     = !isFuture
+                        && taskManager.hasTasks(for: date)
+                        && taskManager.progress(for: date) >= 0.5
+            return (letter: ["M","T","W","T","F","S","S"][i],
+                    completed: done,
+                    isToday: isToday,
+                    isFuture: isFuture)
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+
+            // Flame + number
+            HStack(spacing: 14) {
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.dodoOrange)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\(dodoManager.stats.currentStreak)")
+                        .font(.system(size: 52, weight: .bold, design: .rounded))
+                        .foregroundColor(.dodoOrange)
+                    Text("day streak")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+            }
+
+            // Week header row
+            HStack {
+                Text("This week")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("Keep it going →")
+                    .font(.system(size: 11))
+                    .foregroundColor(.dodoOrange)
+            }
+
+            // 7 day circles
+            HStack(spacing: 0) {
+                ForEach(Array(weekDays.enumerated()), id: \.offset) { _, day in
+                    VStack(spacing: 5) {
+                        ZStack {
+                            Circle()
+                                .fill(day.completed
+                                      ? Color.dodoOrange
+                                      : Color.white.opacity(0.06))
+                                .frame(width: 34, height: 34)
+
+                            if day.isToday && !day.completed {
+                                Circle()
+                                    .stroke(Color.dodoOrange, lineWidth: 1.5)
+                                    .frame(width: 34, height: 34)
+                            }
+
+                            if day.completed {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.black)
+                            }
+                        }
+
+                        Text(day.letter)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(day.completed
+                                             ? .dodoOrange
+                                             : Color.white.opacity(0.25))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding(18)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
     }
 }
 
