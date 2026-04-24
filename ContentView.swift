@@ -331,7 +331,7 @@ struct AllDoneCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("All done!")
                     .font(.headline)
-                Text("Done. That's what showing up looks lik)
+                Text("Done. That's what showing up looks like")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
