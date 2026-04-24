@@ -421,23 +421,10 @@ struct GrowthView: View {
                     StreakHeaderCard()
                         .padding(.horizontal)
 
-                    // This week
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("This week")
-                            .font(.headline)
-                            .padding(.horizontal)
-
-                        HStack(spacing: 4) {
-                            ForEach(thisWeek, id: \.self) { date in
-                                WeekDayBar(date: date, progress: taskManager.progress(for: date), hasTasks: taskManager.hasTasks(for: date))
-                            }
-                        }
+                    // Activity heatmap
+                    ActivityHeatmapView()
+                        .environmentObject(taskManager)
                         .padding(.horizontal)
-                    }
-                    .padding(.vertical, 16)
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(16)
-                    .padding(.horizontal)
 
                     // Personal stats
                     VStack(alignment: .leading, spacing: 12) {
@@ -820,6 +807,142 @@ struct StreakHeaderCard: View {
             }
         }
         .padding(18)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+    }
+}
+
+// MARK: - Activity Heatmap
+
+struct ActivityHeatmapView: View {
+    @EnvironmentObject var taskManager: TaskManager
+
+    private let totalWeeks = 13
+
+    private var columns: [[Date?]] {
+        let cal = Calendar.current
+        let today = Date().startOfDay
+        let weekday = cal.component(.weekday, from: today)
+        let daysFromSunday = weekday - 1
+        guard let thisSunday = cal.date(
+            byAdding: .day, value: -daysFromSunday, to: today) else { return [] }
+
+        return (0..<totalWeeks).map { w in
+            let weekOffset = w - (totalWeeks - 1)
+            return (0..<7).map { d -> Date? in
+                guard let date = cal.date(
+                    byAdding: .day,
+                    value: weekOffset * 7 + d,
+                    to: thisSunday) else { return nil }
+                return date > today ? nil : date
+            }
+        }
+    }
+
+    private func cellColor(for date: Date?) -> Color {
+        guard let date else {
+            return Color.white.opacity(0.04)
+        }
+        guard taskManager.hasTasks(for: date) else {
+            return Color.white.opacity(0.06)
+        }
+        let p = taskManager.progress(for: date)
+        switch p {
+        case 0.75...1.0: return Color(red: 0.976, green: 0.451, blue: 0.086)
+        case 0.25..<0.75: return Color(red: 0.769, green: 0.306, blue: 0.0)
+        default:          return Color(red: 0.478, green: 0.180, blue: 0.0)
+        }
+    }
+
+    // Month label: (name, column index) where month first appears
+    private var monthLabels: [(String, Int)] {
+        let cal = Calendar.current
+        var labels: [(String, Int)] = []
+        var lastMonth = -1
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+
+        for (colIdx, col) in columns.enumerated() {
+            let firstDate = col.compactMap { $0 }.first
+            guard let date = firstDate else { continue }
+            let month = cal.component(.month, from: date)
+            if month != lastMonth {
+                labels.append((formatter.string(from: date), colIdx))
+                lastMonth = month
+            }
+        }
+        return labels
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Activity — last 3 months")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.secondary)
+                .tracking(0.5)
+                .textCase(.uppercase)
+                .padding(.bottom, 8)
+
+            // Month labels row
+            GeometryReader { geo in
+                let totalGaps = CGFloat(totalWeeks - 1) * 3
+                let colWidth = (geo.size.width - totalGaps) / CGFloat(totalWeeks)
+
+                ZStack(alignment: .topLeading) {
+                    ForEach(monthLabels, id: \.1) { name, col in
+                        Text(name)
+                            .font(.system(size: 9))
+                            .foregroundColor(Color.white.opacity(0.4))
+                            .offset(x: CGFloat(col) * (colWidth + 3))
+                    }
+                }
+            }
+            .frame(height: 14)
+
+            // Grid
+            GeometryReader { geo in
+                let totalGaps = CGFloat(totalWeeks - 1) * 3
+                let colWidth = (geo.size.width - totalGaps) / CGFloat(totalWeeks)
+
+                HStack(spacing: 3) {
+                    ForEach(Array(columns.enumerated()), id: \.offset) { _, col in
+                        VStack(spacing: 3) {
+                            ForEach(Array(col.enumerated()), id: \.offset) { _, date in
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(cellColor(for: date))
+                                    .frame(width: colWidth, height: colWidth)
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(height: CGFloat(7) * 20)
+
+            // Legend
+            HStack(spacing: 6) {
+                Spacer()
+                Text("less")
+                    .font(.system(size: 9))
+                    .foregroundColor(Color.white.opacity(0.3))
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.06))
+                    .frame(width: 11, height: 11)
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 0.478, green: 0.180, blue: 0.0))
+                    .frame(width: 11, height: 11)
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 0.769, green: 0.306, blue: 0.0))
+                    .frame(width: 11, height: 11)
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 0.976, green: 0.451, blue: 0.086))
+                    .frame(width: 11, height: 11)
+                Text("more")
+                    .font(.system(size: 9))
+                    .foregroundColor(Color.white.opacity(0.3))
+            }
+            .padding(.top, 8)
+        }
+        .padding(14)
         .background(Color(.secondarySystemBackground))
         .cornerRadius(16)
     }
