@@ -1,23 +1,22 @@
 //
 //  ContentView.swift
-//  Dodo - Life Gamification
+//  Dodo
 //
 
 import SwiftUI
 
 // MARK: - Root Tab Shell
 
-
 struct ContentView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
     @State private var selectedTab: AppTab = .today
-    @State private var showGreeting = true          // ADD T
+    @State private var showGreeting = true
 
-    enum AppTab{case today, tasks, dodo}
+    enum AppTab { case today, tasks, growth }
 
     var body: some View {
-        ZStack {                                     // WRAP IN ZSTACK
+        ZStack {
             TabView(selection: $selectedTab) {
                 TodayView()
                     .tabItem { Label("Today", systemImage: "sun.max.fill") }
@@ -27,25 +26,25 @@ struct ContentView: View {
                     .tabItem { Label("Tasks", systemImage: "checklist") }
                     .tag(AppTab.tasks)
 
-                DodoView()
-                    .tabItem { Label("Dodo", systemImage: "bird.fill") }
-                    .tag(AppTab.dodo)
+                GrowthView()
+                    .tabItem { Label("Growth", systemImage: "chart.line.uptrend.xyaxis") }
+                    .tag(AppTab.growth)
             }
             .tint(Color.dodoOrange)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 dodoManager.recalculateDecayOnForeground()
-                withAnimation(.spring()) { showGreeting = true }  // ADD THIS
+                withAnimation(.spring()) { showGreeting = true }
             }
 
-            if showGreeting {                        // ADD THIS BLOCK
+            if showGreeting {
                 GreetingSplashView(greeting: currentGreeting, isShowing: $showGreeting)
-                    .transition(AnyTransition.opacity)
+                    .transition(.opacity)
                     .zIndex(1)
             }
         }
     }
 
-    private var currentGreeting: String {           // ADD THIS
+    private var currentGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5..<12:  return "Good morning"
@@ -54,13 +53,16 @@ struct ContentView: View {
         }
     }
 }
+
+// MARK: - Greeting Splash
+
 struct GreetingSplashView: View {
     let greeting: String
     @Binding var isShowing: Bool
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            Color.black.opacity(0.5)
                 .ignoresSafeArea()
                 .onTapGesture { withAnimation(.spring()) { isShowing = false } }
 
@@ -70,9 +72,10 @@ struct GreetingSplashView: View {
                 Text(greeting)
                     .font(.largeTitle.bold())
                     .foregroundColor(.white)
-                Text("Ready to level up today?")
+                Text("You've got tasks. The question is whether you'll actually do them.")
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
                 Button("Let's go →") {
                     withAnimation(.spring()) { isShowing = false }
                 }
@@ -84,7 +87,7 @@ struct GreetingSplashView: View {
                 .padding(.top, 8)
             }
             .padding(32)
-            .background(Color(.systemGray6).opacity(0.95))
+            .background(Color(.systemGray6).opacity(0.97))
             .cornerRadius(24)
             .padding(40)
         }
@@ -107,27 +110,27 @@ struct TodayView: View {
         }
     }
 
-    private var todayTasks: [TodoTask] {
-        taskManager.tasks.filter { !$0.isCompleted }
-    }
-    
     private var tagline: String {
-        let lines: [String] = [
-            "Welcome back.",
-            "Back at it.",
-            "Let's get things done.",
+        let lines = [
+            "You know what you need to do.",
+            "Either you do it or you don't.",
+            "No one's coming to save you.",
             "Your streak won't keep itself.",
-            "One task at a time.",
-            "Make today count.",
-            "Dodo's counting on you.",
-            "Stay locked in.",
-            "Small wins add up.",
-            "You showed up. That's half of it.",
-            "Let's build something today.",
-            "No days off.",
+            "The gap between you and your potential is today.",
+            "Small wins add up. So do excuses.",
+            "Do the thing you've been putting off.",
+            "You've been here before. Finish this time.",
+            "Stop thinking. Start doing.",
+            "Future you is watching.",
+            "Discipline is just doing it when you don't feel like it.",
+            "You already know what needs to happen.",
         ]
         let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
         return lines[dayOfYear % lines.count]
+    }
+
+    private var todayTasks: [TodoTask] {
+        taskManager.tasks.filter { !$0.isCompleted && Calendar.current.isDateInToday($0.dueDate) }
     }
 
     private var completedToday: [TodoTask] {
@@ -137,12 +140,27 @@ struct TodayView: View {
         }
     }
 
+    // Weekly completion % for the mini stat
+    private var weeklyPercent: Int {
+        let cal = Calendar.current
+        var total: Double = 0
+        var validDays = 0
+        for i in 0..<7 {
+            guard let date = cal.date(byAdding: .day, value: -i, to: Date().startOfDay) else { continue }
+            guard taskManager.hasTasks(for: date) else { continue }
+            total += taskManager.progress(for: date)
+            validDays += 1
+        }
+        guard validDays > 0 else { return 0 }
+        return Int((total / Double(validDays)) * 100)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
 
-                    // --- Header ---
+                    // Header
                     VStack(alignment: .leading, spacing: 4) {
                         Text(greeting)
                             .font(.title2)
@@ -153,11 +171,16 @@ struct TodayView: View {
                     .padding(.horizontal)
                     .padding(.top, 8)
 
-                    // --- Dodo Status Card ---
-                    DodoStatusCard()
-                        .padding(.horizontal)
+                    // Mini stats row
+                    UserStatsRow(
+                        streak: dodoManager.stats.currentStreak,
+                        doneToday: completedToday.count,
+                        totalToday: completedToday.count + todayTasks.count,
+                        weeklyPercent: weeklyPercent
+                    )
+                    .padding(.horizontal)
 
-                    // --- Progress Summary ---
+                    // Progress bar
                     if !completedToday.isEmpty || !todayTasks.isEmpty {
                         ProgressSummaryCard(
                             completed: completedToday.count,
@@ -166,7 +189,7 @@ struct TodayView: View {
                         .padding(.horizontal)
                     }
 
-                    // --- Remaining Tasks ---
+                    // Task list
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("Remaining")
@@ -182,8 +205,6 @@ struct TodayView: View {
                             AllDoneCard()
                                 .padding(.horizontal)
                         } else {
-                            // Reuse TaskRowView from TaskListView.swif
-                            //we perfected it lets goo
                             VStack(spacing: 0) {
                                 ForEach(todayTasks.prefix(5)) { task in
                                     TaskCard(task: task)
@@ -199,12 +220,10 @@ struct TodayView: View {
                             .padding(.horizontal)
 
                             if todayTasks.count > 5 {
-                                Button("See all \(todayTasks.count) tasks →") {
-                                    // Switch to Tasks tab
-                                }
-                                .font(.subheadline)
-                                .foregroundColor(.dodoOrange)
-                                .padding(.horizontal)
+                                Button("See all \(todayTasks.count) tasks →") { }
+                                    .font(.subheadline)
+                                    .foregroundColor(.dodoOrange)
+                                    .padding(.horizontal)
                             }
                         }
                     }
@@ -216,77 +235,61 @@ struct TodayView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddTask = true }) {
-                        Image(systemName: "plus")
-                            .fontWeight(.semibold)
+                        Image(systemName: "plus").fontWeight(.semibold)
                     }
                 }
             }
             .sheet(isPresented: $showingAddTask) {
-                AddTaskView()
-                    .environmentObject(taskManager)
+                AddTaskView().environmentObject(taskManager)
             }
         }
     }
 }
 
-// MARK: - Dodo Status Card
+// MARK: - User Stats Row (replaces DodoStatusCard)
 
-struct DodoStatusCard: View {
-    @EnvironmentObject var dodoManager: DodoManager
+struct UserStatsRow: View {
+    let streak: Int
+    let doneToday: Int
+    let totalToday: Int
+    let weeklyPercent: Int
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Mood emoji
-            Text(dodoManager.stats.moodEmoji)
-                .font(.system(size: 52))
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("Level \(dodoManager.stats.level)")
-                        .font(.headline)
-                    Text("• \(dodoManager.stats.statusMessage)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-
-                MiniStatBar(label: "Hunger",    value: dodoManager.stats.hunger,    color: .dodoOrange)
-                MiniStatBar(label: "Happiness", value: dodoManager.stats.happiness, color: .blue)
-                MiniStatBar(label: "Health",    value: dodoManager.stats.health,    color: .green)
-            }
+        HStack(spacing: 10) {
+            MiniStatCard(value: "\(streak)", label: "day streak", icon: "flame.fill", color: .dodoOrange)
+            MiniStatCard(
+                value: "\(doneToday)/\(totalToday)",
+                label: "done today",
+                icon: "checkmark.circle.fill",
+                color: .green
+            )
+            MiniStatCard(value: "\(weeklyPercent)%", label: "this week", icon: "chart.bar.fill", color: .blue)
         }
-        .padding(16)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(16)
     }
 }
 
-struct MiniStatBar: View {
+struct MiniStatCard: View {
+    let value: String
     let label: String
-    let value: Double
+    let icon: String
     let color: Color
 
     var body: some View {
-        HStack(spacing: 8) {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(color)
+            Text(value)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
             Text(label)
-                .font(.caption2)
+                .font(.system(size: 10))
                 .foregroundColor(.secondary)
-                .frame(width: 58, alignment: .leading)
-
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(color.opacity(0.15))
-                    Capsule()
-                        .fill(color)
-                        .frame(width: geo.size.width * CGFloat(value / 100))
-                }
-            }
-            .frame(height: 6)
-
-            Text("\(Int(value))%")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .frame(width: 30, alignment: .trailing)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
     }
 }
 
@@ -296,9 +299,7 @@ struct ProgressSummaryCard: View {
     let completed: Int
     let total: Int
 
-    private var progress: Double {
-        total == 0 ? 0 : Double(completed) / Double(total)
-    }
+    private var progress: Double { total == 0 ? 0 : Double(completed) / Double(total) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -311,7 +312,6 @@ struct ProgressSummaryCard: View {
                     .font(.subheadline.bold())
                     .foregroundColor(.dodoOrange)
             }
-
             ProgressView(value: progress)
                 .tint(.dodoOrange)
                 .scaleEffect(x: 1, y: 1.5, anchor: .center)
@@ -327,12 +327,11 @@ struct ProgressSummaryCard: View {
 struct AllDoneCard: View {
     var body: some View {
         HStack(spacing: 16) {
-            Text("🎉")
-                .font(.system(size: 36))
+            Text("🎉").font(.system(size: 36))
             VStack(alignment: .leading, spacing: 2) {
                 Text("All done!")
                     .font(.headline)
-                Text("Dodo is happy. Add more tasks to keep growing.")
+                Text("Done. That's what showing up looks lik)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -340,85 +339,220 @@ struct AllDoneCard: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.dodoOrange.opacity(0.08))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.dodoOrange.opacity(0.2), lineWidth: 1)
-        )
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dodoOrange.opacity(0.2), lineWidth: 1))
         .cornerRadius(12)
     }
 }
 
-// MARK: - Dodo Detail View
+// MARK: - Growth View (replaces DodoView)
 
-struct DodoView: View {
+struct GrowthView: View {
     @EnvironmentObject var dodoManager: DodoManager
+    @EnvironmentObject var taskManager: TaskManager
+
+    private var thisWeek: [Date] {
+        let cal = Calendar.current
+        var result: [Date] = []
+        for i in stride(from: 6, through: 0, by: -1) {
+            if let d = cal.date(byAdding: .day, value: -i, to: Date().startOfDay) {
+                result.append(d)
+            }
+        }
+        return result
+    }
+
+    private var categoryBreakdown: [(TodoTask.TaskCategory, Int)] {
+        var result: [(TodoTask.TaskCategory, Int)] = []
+        for cat in TodoTask.TaskCategory.allCases {
+            let count = taskManager.tasks.filter { $0.category == cat && $0.isCompleted }.count
+            result.append((cat, count))
+        }
+        return result.sorted { $0.1 > $1.1 }
+    }
+
+    private var maxCategoryCount: Int {
+        categoryBreakdown.map(\.1).max() ?? 1
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Big mood display
-                    VStack(spacing: 8) {
-                        Text(dodoManager.stats.moodEmoji)
-                            .font(.system(size: 100))
-                        Text(dodoManager.stats.statusMessage)
-                            .font(.title3)
-                            .foregroundColor(.secondary)
-                        Text("Level \(dodoManager.stats.level) Dodo")
+                VStack(spacing: 20) {
+
+                    // Top stat cards
+                    HStack(spacing: 10) {
+                        GrowthStatCard(value: "\(dodoManager.stats.currentStreak)", label: "Day streak", icon: "flame.fill", color: .dodoOrange)
+                        GrowthStatCard(value: "\(dodoManager.stats.level)", label: "Level", icon: "star.fill", color: .yellow)
+                        GrowthStatCard(value: "\(dodoManager.stats.totalTasksCompleted)", label: "Completed", icon: "checkmark.seal.fill", color: .green)
+                    }
+                    .padding(.horizontal)
+
+                    // This week
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("This week")
                             .font(.headline)
-                    }
-                    .padding(.top, 20)
+                            .padding(.horizontal)
 
-                    // Stats
-                    VStack(spacing: 14) {
-                        StatDetailRow(
-                            icon: "fork.knife",
-                            label: "Hunger",
-                            value: dodoManager.stats.hunger,
-                            color: .dodoOrange,
-                            tip: "Complete tasks to feed Dodo"
-                        )
-                        StatDetailRow(
-                            icon: "heart.fill",
-                            label: "Happiness",
-                            value: dodoManager.stats.happiness,
-                            color: .blue,
-                            tip: "Complete any task to boost happiness"
-                        )
-                        StatDetailRow(
-                            icon: "bolt.fill",
-                            label: "Health",
-                            value: dodoManager.stats.health,
-                            color: .green,
-                            tip: "Complete Health tasks to boost health"
-                        )
+                        HStack(spacing: 4) {
+                            ForEach(thisWeek, id: \.self) { date in
+                                WeekDayBar(date: date, progress: taskManager.progress(for: date), hasTasks: taskManager.hasTasks(for: date))
+                            }
+                        }
+                        .padding(.horizontal)
                     }
+                    .padding(.vertical, 16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(16)
                     .padding(.horizontal)
 
-                    // Lifetime stats
-                    HStack(spacing: 12) {
-                        LifetimeStatCard(
-                            value: "\(dodoManager.stats.totalTasksCompleted)",
-                            label: "Tasks\ncompleted"
-                        )
-                        LifetimeStatCard(
-                            value: "\(dodoManager.stats.level)",
-                            label: "Current\nlevel"
-                        )
-                        LifetimeStatCard(
-                            value: "\(dodoManager.stats.level * 10)",
-                            label: "XP to next\nlevel"
-                        )
+                    // Personal stats
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Your stats")
+                            .font(.headline)
+                            .padding(.horizontal)
+
+                        VStack(spacing: 10) {
+                            PersonalStatRow(
+                                icon: "bolt.fill",
+                                label: "Focus",
+                                value: dodoManager.stats.focus,
+                                color: .dodoOrange,
+                                tip: "Drops when you go quiet. Stay active."
+                            )
+                            PersonalStatRow(
+                                icon: "heart.fill",
+                                label: "Mood",
+                                value: dodoManager.stats.mood,
+                                color: .pink,
+                                tip: "Do something. Anything. It compounds."
+                            )
+                            PersonalStatRow(
+                                icon: "arrow.triangle.2.circlepath",
+                                label: "Consistency",
+                                value: dodoManager.stats.consistency,
+                                color: .green,
+                                tip: "Health tasks build the base. Don't skip them."
+                            )
+                        }
+                        .padding(.horizontal)
                     }
+                    .padding(.vertical, 16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(16)
                     .padding(.horizontal)
+
+                    // Category breakdown
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("By category")
+                            .font(.headline)
+                            .padding(.horizontal)
+
+                        VStack(spacing: 10) {
+                            ForEach(categoryBreakdown, id: \.0) { cat, count in
+                                CategoryRow(category: cat, count: count, maxCount: maxCategoryCount)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.vertical, 16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(16)
+                    .padding(.horizontal)
+
+                    // XP progress to next level
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Level \(dodoManager.stats.level)")
+                                .font(.subheadline.bold())
+                            Spacer()
+                            Text("\(dodoManager.stats.xpToNextLevel) XP to next level")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        ProgressView(value: Double(dodoManager.stats.totalTasksCompleted % 10), total: 10)
+                            .tint(.dodoOrange)
+                            .scaleEffect(x: 1, y: 2, anchor: .center)
+                    }
+                    .padding(16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(16)
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 40)
                 }
+                .padding(.top, 8)
             }
-            .navigationTitle("Your Dodo")
+            .navigationTitle("Your Growth")
         }
     }
 }
 
-struct StatDetailRow: View {
+// MARK: - Growth Sub-components
+
+struct GrowthStatCard: View {
+    let value: String
+    let label: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon).foregroundColor(color).font(.system(size: 16))
+            Text(value).font(.title2.bold()).foregroundColor(.primary)
+            Text(label).font(.caption2).foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+}
+
+struct WeekDayBar: View {
+    let date: Date
+    let progress: Double
+    let hasTasks: Bool
+
+    private var isToday: Bool { Calendar.current.isDateInToday(date) }
+    private var dayLetter: String {
+        let f = DateFormatter(); f.dateFormat = "EEE"; return String(f.string(from: date).prefix(1))
+    }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            GeometryReader { geo in
+                ZStack(alignment: .bottom) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.white.opacity(0.08))
+                        .frame(height: geo.size.height)
+                    if hasTasks {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(isToday ? Color.dodoOrange : Color.dodoOrange.opacity(0.6))
+                            .frame(height: max(4, geo.size.height * progress))
+                    }
+                }
+            }
+            .frame(height: 60)
+
+            Text(dayLetter)
+                .font(.system(size: 10, weight: isToday ? .bold : .regular))
+                .foregroundColor(isToday ? .dodoOrange : .secondary)
+
+            if hasTasks {
+                Text("\(Int(progress * 100))%")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+            } else {
+                Text("–")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary.opacity(0.4))
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct PersonalStatRow: View {
     let icon: String
     let label: String
     let value: Double
@@ -428,23 +562,13 @@ struct StatDetailRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                Text(label)
-                    .font(.subheadline.bold())
+                Image(systemName: icon).foregroundColor(color)
+                Text(label).font(.subheadline.bold())
                 Spacer()
-                Text("\(Int(value))%")
-                    .font(.subheadline.bold())
-                    .foregroundColor(color)
+                Text("\(Int(value))%").font(.subheadline.bold()).foregroundColor(color)
             }
-
-            ProgressView(value: value, total: 100)
-                .tint(color)
-                .scaleEffect(x: 1, y: 2, anchor: .center)
-
-            Text(tip)
-                .font(.caption)
-                .foregroundColor(.secondary)
+            ProgressView(value: value, total: 100).tint(color).scaleEffect(x: 1, y: 2, anchor: .center)
+            Text(tip).font(.caption).foregroundColor(.secondary)
         }
         .padding(14)
         .background(color.opacity(0.06))
@@ -452,31 +576,53 @@ struct StatDetailRow: View {
     }
 }
 
-struct LifetimeStatCard: View {
-    let value: String
-    let label: String
+struct CategoryRow: View {
+    let category: TodoTask.TaskCategory
+    let count: Int
+    let maxCount: Int
+
+    private var barWidth: Double {
+        maxCount == 0 ? 0 : Double(count) / Double(maxCount)
+    }
+
+    private var color: Color {
+        switch category {
+        case .school:   return .dodoOrange
+        case .health:   return .green
+        case .personal: return Color(red: 0.4, green: 0.6, blue: 1.0)
+        case .social:   return Color(red: 0.9, green: 0.4, blue: 0.7)
+        }
+    }
 
     var body: some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.title2.bold())
-                .foregroundColor(.dodoOrange)
-            Text(label)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+        HStack(spacing: 12) {
+            Text(category.emoji).font(.system(size: 18)).frame(width: 24)
+            Text(category.rawValue)
+                .font(.subheadline)
+                .frame(width: 70, alignment: .leading)
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(color.opacity(0.12)).frame(height: 8)
+                    Capsule()
+                        .fill(color)
+                        .frame(width: geo.size.width * barWidth, height: 8)
+                }
+            }
+            .frame(height: 8)
+
+            Text("\(count)")
+                .font(.subheadline.bold())
+                .foregroundColor(color)
+                .frame(width: 28, alignment: .trailing)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
     }
 }
 
 // MARK: - Design Tokens
 
 extension Color {
-    static let dodoOrange = Color(red: 0.976, green: 0.451, blue: 0.086) // #F97316
+    static let dodoOrange = Color(red: 0.976, green: 0.451, blue: 0.086)
 }
 
 #Preview {

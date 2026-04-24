@@ -1,48 +1,70 @@
 //
 //  Dodo.swift
-//  Dodo - Life Gamification
+//  Dodo
 //
- 
+//  Personal growth stats — Focus, Mood, Consistency.
+//  These are YOUR stats, not a pet's.
+//
+
 import Foundation
 import SwiftUI
 import Combine
- 
+
+// MARK: - Stats Model
+
 struct DodoStats: Codable {
-    var hunger: Double = 100.0      // 0–100
-    var happiness: Double = 100.0   // 0–100
-    var health: Double = 100.0      // 0–100
+    /// Focus: how locked-in you are. Rises with task completions, drifts down with inactivity.
+    var focus: Double = 100.0
+    /// Mood: your motivation level. Any completion gives a boost.
+    var mood: Double = 100.0
+    /// Consistency: your health/routine score. Boosted by Health-category tasks.
+    var consistency: Double = 100.0
+
     var level: Int = 1
     var totalTasksCompleted: Int = 0
-    var lastFedDate: Date = Date()
- 
-    var moodEmoji: String {
-        switch averageStat {
-        case 80...100: return "😊"
-        case 60..<80:  return "🙂"
-        case 40..<60:  return "😐"
-        case 20..<40:  return "😟"
-        default:       return "😢"
-        }
+    var currentStreak: Int = 0
+    var lastActiveDate: Date = Date()
+
+    // MARK: Computed
+
+    var averageStat: Double {
+        (focus + mood + consistency) / 3
     }
- 
+
     var statusMessage: String {
         switch averageStat {
-        case 80...100: return "Dodo is thriving!"
-        case 60..<80:  return "Dodo is doing well"
-        case 40..<60:  return "Dodo needs attention"
-        case 20..<40:  return "Dodo is struggling"
-        default:       return "Dodo needs help!"
+        case 80...100: return "You're in the zone"
+        case 60..<80:  return "Doing well, keep going"
+        case 40..<60:  return "Build some momentum"
+        case 20..<40:  return "Time to get back on track"
+        default:       return "Let's get moving"
         }
     }
- 
-    private var averageStat: Double {
-        (hunger + happiness + health) / 3
+
+    var moodEmoji: String {
+        switch averageStat {
+        case 80...100: return "🔥"
+        case 60..<80:  return "💪"
+        case 40..<60:  return "😐"
+        case 20..<40:  return "😔"
+        default:       return "😴"
+        }
+    }
+
+    var xpToNextLevel: Int {
+        let thresholds = [10, 25, 45, 70, 100, 140, 190, 250, 320, 400]
+        let idx = min(level - 1, thresholds.count - 1)
+        let current = idx > 0 ? thresholds[idx - 1] : 0
+        let next = thresholds[idx]
+        return max(0, next - totalTasksCompleted + current)
     }
 }
- 
+
+// MARK: - Manager
+
 class DodoManager: ObservableObject {
     @Published var stats: DodoStats
- 
+
     init() {
         if let data = UserDefaults.standard.data(forKey: "dodoStats"),
            let decoded = try? JSONDecoder().decode(DodoStats.self, from: data) {
@@ -50,55 +72,54 @@ class DodoManager: ObservableObject {
         } else {
             self.stats = DodoStats()
         }
- 
-        // Apply any decay that accumulated while the app was closed
         recalculateDecayOnForeground()
     }
- 
-    // MARK: - Called from ContentView on foreground transition
-    // Replaces the Timer approach — calculates total decay based on
-    // how many hours have passed since the app was last active.
+
+    // MARK: - Foreground Decay
+    // Focus and mood naturally drift if you haven't been active.
+    // Called when app comes to foreground.
     func recalculateDecayOnForeground() {
-        let hoursSinceLastFed = Date().timeIntervalSince(stats.lastFedDate) / 3600
- 
-        guard hoursSinceLastFed > 6 else { return } // Grace period
- 
-        let decayHours = hoursSinceLastFed - 6
-        let hungerDecay   = min(decayHours * 5,  stats.hunger)
-        let happinessDecay = min(decayHours * 3, stats.happiness)
- 
-        stats.hunger    = max(0, stats.hunger    - hungerDecay)
-        stats.happiness = max(0, stats.happiness - happinessDecay)
+        let hoursSinceActive = Date().timeIntervalSince(stats.lastActiveDate) / 3600
+        guard hoursSinceActive > 6 else { return }
+
+        let decayHours = hoursSinceActive - 6
+        let focusDecay   = min(decayHours * 5, stats.focus)
+        let moodDecay    = min(decayHours * 3, stats.mood)
+
+        stats.focus = max(0, stats.focus - focusDecay)
+        stats.mood  = max(0, stats.mood  - moodDecay)
         saveStats()
     }
- 
-    // MARK: - Task Completion
- 
-    func feedDodo(amount: Int) {
-        stats.hunger    = min(100, stats.hunger    + Double(amount))
-        stats.happiness = min(100, stats.happiness + Double(amount) * 0.5)
+
+    // MARK: - Task Completion (called from TaskCard)
+
+    /// Call this when any task is completed.
+    func taskCompleted(amount: Int) {
+        stats.focus    = min(100, stats.focus + Double(amount))
+        stats.mood     = min(100, stats.mood  + Double(amount) * 0.5)
         stats.totalTasksCompleted += 1
+        stats.currentStreak += 1
+        stats.lastActiveDate = Date()
         checkLevelUp()
-        stats.lastFedDate = Date()
         saveStats()
     }
- 
-    func completeHealthTask(amount: Int) {
-        stats.health = min(100, stats.health + Double(amount))
-        feedDodo(amount: amount)
+
+    /// Call this when a Health-category task is completed.
+    func healthTaskCompleted(amount: Int) {
+        stats.consistency = min(100, stats.consistency + Double(amount))
+        taskCompleted(amount: amount)
     }
- 
+
     // MARK: - Private
- 
+
     private func checkLevelUp() {
-        // Level threshold: 10 tasks for L2, 25 for L3, 45 for L4, etc.
         let thresholds = [10, 25, 45, 70, 100, 140, 190, 250, 320, 400]
         let newLevel = (thresholds.firstIndex(where: { stats.totalTasksCompleted < $0 }) ?? thresholds.count) + 1
         if newLevel > stats.level {
             stats.level = newLevel
         }
     }
- 
+
     private func saveStats() {
         if let encoded = try? JSONEncoder().encode(stats) {
             UserDefaults.standard.set(encoded, forKey: "dodoStats")

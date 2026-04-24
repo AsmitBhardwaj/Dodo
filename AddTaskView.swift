@@ -45,9 +45,7 @@ struct AddTaskView: View {
                 }
 
                 Section {
-                    Text("Completing this task gives Dodo \(rewardValue) XP!")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text("Complete this task to earn \(rewardValue) XP toward your goals.")
                 }
             }
             .navigationTitle("New Task")

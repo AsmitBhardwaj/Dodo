@@ -131,7 +131,9 @@ struct MonthGridView: View {
         task.dueDate = date.startOfDay
         taskManager.addTask(task)
         draggingTask = nil
-        if date.isSameDay(as: Date()) { dodoManager.feedDodo(amount: 2) }
+        if date.isSameDay(as: Date()) {
+            dodoManager.taskCompleted(amount: 2)
+        }
     }
 }
 
@@ -429,8 +431,8 @@ struct TaskCard: View {
         withAnimation(.spring()) {
             taskManager.completeTask(task)
             task.category == .health
-                ? dodoManager.completeHealthTask(amount: task.rewardValue)
-                : dodoManager.feedDodo(amount: task.rewardValue)
+                ? dodoManager.healthTaskCompleted(amount: task.rewardValue)
+                : dodoManager.taskCompleted(amount: task.rewardValue)
             showConfetti = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showConfetti = false }
         }
