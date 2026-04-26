@@ -953,5 +953,6 @@ struct ActivityHeatmapView: View {
     ContentView()
         .environmentObject(TaskManager())
         .environmentObject(DodoManager())
+        .environmentObject(StatsManager())
         .preferredColorScheme(.dark)
 }
