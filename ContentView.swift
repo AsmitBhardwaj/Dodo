@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
+    @EnvironmentObject var stats : StatsManager
     @State private var selectedTab: AppTab = .today
     @State private var showGreeting = true
 
@@ -29,6 +30,7 @@ struct ContentView: View {
                 GrowthView()
                     .tabItem { Label("Growth", systemImage: "chart.line.uptrend.xyaxis") }
                     .tag(AppTab.growth)
+                    .environmentObject(stats)
             }
             .tint(Color.dodoOrange)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
@@ -387,6 +389,7 @@ struct AllDoneCard: View {
 struct GrowthView: View {
     @EnvironmentObject var dodoManager: DodoManager
     @EnvironmentObject var taskManager: TaskManager
+    @EnvironmentObject var stats : StatsManager
 
     private var thisWeek: [Date] {
         let cal = Calendar.current
@@ -427,41 +430,9 @@ struct GrowthView: View {
                         .padding(.horizontal)
 
                     // Personal stats
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Your stats")
-                            .font(.headline)
-                            .padding(.horizontal)
-
-                        VStack(spacing: 10) {
-                            PersonalStatRow(
-                                icon: "bolt.fill",
-                                label: "Focus",
-                                value: dodoManager.focus(from: taskManager),
-                                color: .dodoOrange,
-                                tip: "Drops when you go quiet. Stay active."
-                            )
-                            PersonalStatRow(
-                                icon: "heart.fill",
-                                label: "Mood",
-                                value: dodoManager.mood(from: taskManager),
-                                color: .pink,
-                                tip: "Do something. Anything. It compounds."
-                            )
-                            PersonalStatRow(
-                                icon: "arrow.triangle.2.circlepath",
-                                label: "Consistency",
-                                value: dodoManager.consistency(from: taskManager),
-                                color: .green,
-                                tip: "Health tasks build the base. Don't skip them."
-                            )
-                        }
+                    YourStatsSection(stats: stats)
                         .padding(.horizontal)
-                    }
-                    .padding(.vertical, 16)
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(16)
-                    .padding(.horizontal)
-
+                    
                     // Category breakdown
                     VStack(alignment: .leading, spacing: 12) {
                         Text("By category")
