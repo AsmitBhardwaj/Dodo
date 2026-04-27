@@ -477,83 +477,108 @@ struct AllDoneCard: View {
 
 // MARK: - Growth View (replaces DodoView)
 
-struct GrowthView: View {
-    @EnvironmentObject var dodoManager: DodoManager
-    @EnvironmentObject var taskManager: TaskManager
-    @EnvironmentObject var stats : StatsManager
+    struct GrowthView: View {
+        @EnvironmentObject var dodoManager: DodoManager
+        @EnvironmentObject var taskManager: TaskManager
+        @EnvironmentObject var stats : StatsManager
 
-    private var thisWeek: [Date] {
-        let cal = Calendar.current
-        var result: [Date] = []
-        for i in stride(from: 6, through: 0, by: -1) {
-            if let d = cal.date(byAdding: .day, value: -i, to: Date().startOfDay) {
-                result.append(d)
+        private var thisWeek: [Date] {
+            let cal = Calendar.current
+            var result: [Date] = []
+            for i in stride(from: 6, through: 0, by: -1) {
+                if let d = cal.date(byAdding: .day, value: -i, to: Date().startOfDay) {
+                    result.append(d)
+                }
             }
+            return result
         }
-        return result
-    }
 
-    private var categoryBreakdown: [(TodoTask.TaskCategory, Int)] {
-        var result: [(TodoTask.TaskCategory, Int)] = []
-        for cat in TodoTask.TaskCategory.allCases {
-            let count = taskManager.tasks.filter { $0.category == cat && $0.isCompleted }.count
-            result.append((cat, count))
+        private var categoryBreakdown: [(TodoTask.TaskCategory, Int)] {
+            var result: [(TodoTask.TaskCategory, Int)] = []
+            for cat in TodoTask.TaskCategory.allCases {
+                let count = taskManager.tasks.filter { $0.category == cat && $0.isCompleted }.count
+                result.append((cat, count))
+            }
+            return result.sorted { $0.1 > $1.1 }
         }
-        return result.sorted { $0.1 > $1.1 }
-    }
 
-    private var maxCategoryCount: Int {
-        categoryBreakdown.map(\.1).max() ?? 1
-    }
+        private var maxCategoryCount: Int {
+            categoryBreakdown.map(\.1).max() ?? 1
+        }
 
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
+        var body: some View {
+            NavigationStack {
+                ScrollView {
+                    VStack(spacing: 20) {
 
-                    // streak
-                    StreakHeaderCard()
+                        // Hero header
+                        VStack(alignment: .leading, spacing: 4) {
+                            let totalCompleted = taskManager.tasks.filter(\.isCompleted).count
+                            let daysSinceFirst = Calendar.current.dateComponents(
+                                [.day],
+                                from: taskManager.tasks.map(\.dueDate).min() ?? Date(),
+                                to: Date()
+                            ).day ?? 0
+
+                            Text("\(totalCompleted) tasks completed.")
+                                .font(.system(size: 28, weight: .heavy))
+                                .foregroundColor(.white)
+                            Text(daysSinceFirst > 0
+                                 ? "You've been at this \(daysSinceFirst) days. Don't stop now."
+                                 : "Your journey starts today.")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(white: 0.5))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
 
-                    // Activity heatmap
-                    ActivityHeatmapView()
-                        .environmentObject(taskManager)
-                        .padding(.horizontal)
-
-                    // Personal stats
-                    YourStatsSection(stats: stats)
-                        .padding(.horizontal)
-                    
-                    // Category breakdown
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("By category")
-                            .font(.headline)
+                        // Streak
+                        StreakHeaderCard()
                             .padding(.horizontal)
 
-                        VStack(spacing: 10) {
-                            ForEach(categoryBreakdown, id: \.0) { cat, count in
-                                CategoryRow(category: cat, count: count, maxCount: maxCategoryCount)
+                        // Heatmap
+                        ActivityHeatmapView()
+                            .environmentObject(taskManager)
+                            .padding(.horizontal)
+
+                        // Weekly report card
+                        WeeklyReportCard()
+                            .environmentObject(taskManager)
+                            .padding(.horizontal)
+
+                        // Category breakdown
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("By category")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            VStack(spacing: 10) {
+                                ForEach(categoryBreakdown, id: \.0) { cat, count in
+                                    CategoryRow(category: cat, count: count, maxCount: maxCategoryCount)
+                                }
                             }
+                            .padding(.horizontal)
                         }
+                        .padding(.vertical, 16)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(16)
+                        .padding(.horizontal)
+
+                        // Dodo vs You
+                        DodoWeeklyScoreCard(
+                            userDays: dodoManager.weeklyScore(from: taskManager).user,
+                            dodoDays: dodoManager.weeklyScore(from: taskManager).dodo
+                        )
                         .padding(.horizontal)
                     }
-                    .padding(.vertical, 16)
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(16)
-                    .padding(.horizontal)
-                    
-                    DodoWeeklyScoreCard(
-                        userDays: dodoManager.weeklyScore(from: taskManager).user,
-                        dodoDays: dodoManager.weeklyScore(from: taskManager).dodo
-                    )
-                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
                 }
-                .padding(.top, 8)
+                .navigationTitle("Your Growth")
+                .background(Color.black)
             }
-            .navigationTitle("Your Growth")
         }
     }
-}
 
 // MARK: - Growth Sub-components
 
@@ -992,6 +1017,181 @@ struct ActivityHeatmapView: View {
         }
         .padding(14)
         .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+    }
+}
+// MARK: - Weekly Report Card
+
+struct WeeklyReportCard: View {
+    @EnvironmentObject var taskManager: TaskManager
+
+    private let cal = Calendar.current
+
+    private struct WeekGrade {
+        let label: String
+        let percent: Double
+        let grade: String
+        let color: Color
+    }
+
+    private var grades: [WeekGrade] {
+        var result: [WeekGrade] = []
+        for weekOffset in 0..<8 {
+            guard let weekStart = cal.date(byAdding: .weekOfYear, value: -weekOffset, to: Date().startOfDay),
+                  let weekSunday = cal.date(bySetting: .weekday, value: 1, of: weekStart) else { continue }
+
+            var totalTasks = 0
+            var completedTasks = 0
+            for dayOffset in 0..<7 {
+                guard let day = cal.date(byAdding: .day, value: dayOffset, to: weekSunday) else { continue }
+                let tasks = taskManager.tasks(for: day)
+                totalTasks += tasks.count
+                completedTasks += tasks.filter(\.isCompleted).count
+            }
+
+            guard totalTasks > 0 else { continue }
+
+            let percent = Double(completedTasks) / Double(totalTasks)
+            let (grade, color) = gradeInfo(percent)
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            guard let weekEnd = cal.date(byAdding: .day, value: 6, to: weekSunday) else { continue }
+            let label = "\(formatter.string(from: weekSunday)) – \(formatter.string(from: weekEnd))"
+
+            result.append(WeekGrade(label: label, percent: percent, grade: grade, color: color))
+        }
+        return result
+    }
+
+    private func gradeInfo(_ percent: Double) -> (String, Color) {
+        switch percent {
+        case 0.9...: return ("A", Color(hex: "#22C55E"))
+        case 0.75..<0.9: return ("B", Color(hex: "#6699FF"))
+        case 0.5..<0.75: return ("C", Color(hex: "#F97316"))
+        default: return ("F", Color(white: 0.35))
+        }
+    }
+
+    private var overallGrade: (String, Color) {
+        guard !grades.isEmpty else { return ("—", Color(white: 0.35)) }
+        let avg = grades.map(\.percent).reduce(0, +) / Double(grades.count)
+        return gradeInfo(avg)
+    }
+
+    private var isTrendingUp: Bool {
+        guard grades.count >= 2 else { return false }
+        return grades[0].percent > grades[1].percent
+    }
+
+    private var bestGrade: (String, Color) {
+        grades.max(by: { $0.percent < $1.percent }).map { gradeInfo($0.percent) } ?? ("—", Color(white: 0.35))
+    }
+
+    private var worstGrade: (String, Color) {
+        grades.min(by: { $0.percent < $1.percent }).map { gradeInfo($0.percent) } ?? ("—", Color(white: 0.35))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Weekly report card")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(Color(hex: "#F97316"))
+                .tracking(1.5)
+                .textCase(.uppercase)
+
+            if grades.isEmpty {
+                Text("Complete tasks this week to get your first grade.")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(white: 0.4))
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(grades.indices, id: \.self) { i in
+                        let g = grades[i]
+                        HStack(spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(g.color.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Text(g.grade)
+                                    .font(.system(size: 16, weight: .black))
+                                    .foregroundColor(g.color)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(g.label)
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text("\(Int(g.percent * 100))%")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(g.color)
+                                }
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(Color(white: 0.12))
+                                            .frame(height: 4)
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(g.color)
+                                            .frame(width: geo.size.width * g.percent, height: 4)
+                                    }
+                                }
+                                .frame(height: 4)
+                            }
+                        }
+                    }
+                }
+
+                Divider().background(Color(white: 0.15))
+
+                HStack {
+                    VStack(spacing: 2) {
+                        Text(overallGrade.0)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(overallGrade.1)
+                        Text("overall")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(white: 0.35))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    VStack(spacing: 2) {
+                        Text(isTrendingUp ? "↑" : "↓")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(isTrendingUp ? Color(hex: "#22C55E") : Color(hex: "#FF4444"))
+                        Text("trend")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(white: 0.35))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    VStack(spacing: 2) {
+                        Text(bestGrade.0)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(bestGrade.1)
+                        Text("best")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(white: 0.35))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    VStack(spacing: 2) {
+                        Text(worstGrade.0)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(worstGrade.1)
+                        Text("worst")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(white: 0.35))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(16)
+        .background(Color(white: 0.1))
         .cornerRadius(16)
     }
 }
