@@ -515,15 +515,17 @@ struct GrowthView: View {
                                 CategoryRow(category: cat, count: count, maxCount: maxCategoryCount)
                             }
                         }
-                        DodoWeeklyScoreCard(
-                            userDays: dodoManager.weeklyScore(from: taskManager).user,
-                            dodoDays: dodoManager.weeklyScore(from: taskManager).dodo
-                        )
                         .padding(.horizontal)
                     }
                     .padding(.vertical, 16)
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(16)
+                    .padding(.horizontal)
+                    
+                    DodoWeeklyScoreCard(
+                        userDays: dodoManager.weeklyScore(from: taskManager).user,
+                        dodoDays: dodoManager.weeklyScore(from: taskManager).dodo
+                    )
                     .padding(.horizontal)
                 }
                 .padding(.top, 8)
