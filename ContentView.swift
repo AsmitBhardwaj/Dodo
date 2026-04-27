@@ -450,27 +450,6 @@ struct GrowthView: View {
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(16)
                     .padding(.horizontal)
-
-                    // XP progress to next level
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Level \(dodoManager.stats.level)")
-                                .font(.subheadline.bold())
-                            Spacer()
-                            Text("\(dodoManager.stats.xpToNextLevel) XP to next level")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        ProgressView(value: Double(dodoManager.stats.totalTasksCompleted % 10), total: 10)
-                            .tint(.dodoOrange)
-                            .scaleEffect(x: 1, y: 2, anchor: .center)
-                    }
-                    .padding(16)
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(16)
-                    .padding(.horizontal)
-
-                    Spacer(minLength: 40)
                 }
                 .padding(.top, 8)
             }
