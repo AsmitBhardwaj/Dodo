@@ -14,7 +14,6 @@ struct AddTaskView: View {
 
     @State private var taskTitle = ""
     @State private var selectedCategory: TodoTask.TaskCategory = .school
-    @State private var rewardValue = 10
     @State private var dueDate: Date
 
     init(defaultDate: Date = Date().startOfDay) {
@@ -27,7 +26,7 @@ struct AddTaskView: View {
             Form {
                 Section("Task Details") {
                     TextField("What do you need to do?", text: $taskTitle)
-
+                    
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(TodoTask.TaskCategory.allCases, id: \.self) { category in
                             HStack {
@@ -37,16 +36,12 @@ struct AddTaskView: View {
                             .tag(category)
                         }
                     }
-
+                    
                     DatePicker("Due Date", selection: $dueDate, displayedComponents: .date)
                         .tint(.dodoOrange)
-
-                    Stepper("Reward: \(rewardValue) XP", value: $rewardValue, in: 5...50, step: 5)
+                    
                 }
-
-                Section {
-                    Text("Complete this task to earn \(rewardValue) XP toward your goals.")
-                }
+                
             }
             .navigationTitle("New Task")
             .navigationBarTitleDisplayMode(.inline)
@@ -67,7 +62,7 @@ struct AddTaskView: View {
         let newTask = TodoTask(
             title: taskTitle,
             category: selectedCategory,
-            rewardValue: rewardValue,
+            rewardValue: 0,
             dueDate: dueDate.startOfDay
         )
         taskManager.addTask(newTask)
