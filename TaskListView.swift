@@ -270,7 +270,7 @@ struct TaskDayList: View {
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     taskManager.deleteTask(task)
                                 } label: {
@@ -289,7 +289,7 @@ struct TaskDayList: View {
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                                     .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
                                             taskManager.deleteTask(task)
                                         } label: {

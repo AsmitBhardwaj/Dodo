@@ -373,9 +373,6 @@ struct TodayView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddTask) {
-                AddTaskView().environmentObject(taskManager)
-            }
         }
     }
 }
