@@ -373,7 +373,8 @@ struct DraggableTaskCard: View {
                         withAnimation(.spring()) {
                             isDragging = false; dragOffset = .zero; draggingTask = nil
                         }
-                    }
+                    },
+                including: isDragging ? .all : .subviews
             )
             .animation(.spring(response: 0.3), value: isDragging)
     }
