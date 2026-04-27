@@ -13,6 +13,17 @@ struct ContentView: View {
     @EnvironmentObject var stats : StatsManager
     @State private var selectedTab: AppTab = .today
     @State private var showGreeting = true
+    
+    private var missedYesterday: Bool {
+        let cal = Calendar.current
+        guard let yesterday = cal.date(byAdding: .day, value: -1, to: Date().startOfDay) else { return false }
+        return taskManager.tasks(for: yesterday).filter { !$0.isCompleted }.count > 0
+    }
+
+    private var todayTasksRemaining: Int {
+        taskManager.tasks.filter { !$0.isCompleted &&
+            Calendar.current.isDateInToday($0.dueDate) }.count
+    }
 
     enum AppTab { case today, tasks, growth }
 
@@ -38,7 +49,12 @@ struct ContentView: View {
             }
 
             if showGreeting {
-                GreetingSplashView(greeting: currentGreeting, tagline: tagline, isShowing: $showGreeting)
+                GreetingSplashView(
+                    streak: dodoManager.stats.currentStreak,
+                    missedYesterday: missedYesterday,
+                    tasksRemaining: todayTasksRemaining,
+                    isShowing: $showGreeting
+                )
                     .transition(.opacity)
                     .zIndex(1)
             }
@@ -58,60 +74,74 @@ struct ContentView: View {
 // MARK: - Greeting Splash
 
 struct GreetingSplashView: View {
-    let greeting: String
-    let tagline: String
+    let streak: Int
+    let missedYesterday: Bool
+    let tasksRemaining: Int
     @Binding var isShowing: Bool
-    
+
+    private var headline: String {
+        if missedYesterday {
+            return "You skipped yesterday."
+        } else if streak >= 3 {
+            return "Day \(streak)."
+        } else if tasksRemaining == 0 {
+            return "All done."
+        } else {
+            return "\(tasksRemaining) task\(tasksRemaining == 1 ? "" : "s") waiting."
+        }
+    }
+
+    private var subtext: String {
+        if missedYesterday {
+            return "Today you can pretend that didn't happen."
+        } else if streak >= 3 {
+            return "Don't be the person who quits on day \(streak)."
+        } else if tasksRemaining == 0 {
+            return "That's what showing up looks like."
+        } else {
+            return "They were there yesterday too."
+        }
+    }
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.5)
+            Color.black.opacity(0.6)
                 .ignoresSafeArea()
-                .onTapGesture { withAnimation(.spring()) { isShowing = false } }
-
-            VStack(spacing: 12) {
-                // Time label — golden for night
-                Text(greeting)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(greeting == "Night owl mode" ? Color(hex: "#FFD700") : .white.opacity(0.6))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Emoji
-                Text(greeting == "Rise and grind" ? "🌅" : greeting == "Still going?" ? "☀️" : "🌙")
-                    .font(.system(size: 36))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Quote — auto-shrinks if too long
-                Text(tagline)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Subtext
-                Text("You've got tasks. The question is whether you'll actually do them.")
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.6))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Button — sharp, no radius
-                Button("Dodo it.") {
+                .onTapGesture {
                     withAnimation(.spring()) { isShowing = false }
                 }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 14)
-                .background(Color.dodoOrange)
-                .foregroundColor(.white)
-                .cornerRadius(0)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(headline)
+                    .font(.system(size: 28, weight: .heavy))
+                    .foregroundColor(.white)
+                    .padding(.bottom, 10)
+
+                Text(subtext)
+                    .font(.system(size: 16))
+                    .foregroundColor(.white.opacity(0.5))
+                    .padding(.bottom, 28)
+
+                Divider()
+                    .background(Color.white.opacity(0.08))
+                    .padding(.bottom, 24)
+
+                Button {
+                    withAnimation(.spring()) { isShowing = false }
+                } label: {
+                    Text("Dodo it.")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Color.dodoOrange)
+                        .cornerRadius(12)
+                }
             }
-            .padding(28)
-            .background(Color(white: 0.1))
-            .cornerRadius(0)
+            .padding(32)
+            .background(Color(red: 0.11, green: 0.10, blue: 0.09))
+            .cornerRadius(20)
             .padding(24)
-            
         }
     }
 }
