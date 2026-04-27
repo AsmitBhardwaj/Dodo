@@ -241,7 +241,13 @@ struct TodayView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(greeting)
                             .font(.title2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(
+                                greeting == "Night owl mode" ? Color(hex: "#FFD700") :
+                                greeting == "Still going?"   ? Color(hex: "#F97316") :
+                                greeting == "Rise and grind" ? Color(hex: "#34D399") :
+                                .secondary
+                            )
+                            .fontWeight(.bold)
                         Text(tagline)
                             .font(.largeTitle.bold())
                     }
@@ -428,9 +434,9 @@ struct AllDoneCard: View {
         HStack(spacing: 16) {
             Text("🎉").font(.system(size: 36))
             VStack(alignment: .leading, spacing: 2) {
-                Text("All done!")
+                Text("All done. Touch grass now.")
                     .font(.headline)
-                Text("Done. That's what showing up looks like")
+                Text("You actually did it. We're as surprised as you are.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
