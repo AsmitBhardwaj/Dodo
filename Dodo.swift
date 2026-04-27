@@ -161,7 +161,22 @@ class DodoManager: ObservableObject {
 
     func taskCompleted(amount: Int) {
         stats.totalTasksCompleted += 1
-        stats.currentStreak += 1
+
+        let cal = Calendar.current
+        let today = Date().startOfDay
+        let lastActive = stats.lastActiveDate.startOfDay
+
+        if cal.isDateInToday(lastActive) {
+            // Already counted today — don't touch streak
+        } else if let yesterday = cal.date(byAdding: .day, value: -1, to: today),
+                  cal.isDate(lastActive, inSameDayAs: yesterday) {
+            // Last active was yesterday — continue streak
+            stats.currentStreak += 1
+        } else {
+            // Gap or first ever task — reset to 1
+            stats.currentStreak = 1
+        }
+
         stats.lastActiveDate = Date()
         if stats.currentStreak > stats.personalBest {
             stats.personalBest = stats.currentStreak
