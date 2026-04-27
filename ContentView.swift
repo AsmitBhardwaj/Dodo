@@ -179,31 +179,56 @@ struct TodayView: View {
         missedYesterday && !bannerDismissed && completedToday.isEmpty
     }
 
-    private var tagline: String {
-        let lines = [
-            "A person who never made a mistake never tried anything new. - Einstein",
-            "It does not matter how slowly you go as long as you do not stop. - Confucius",
-            "You miss 100% of the shots you don't take. - Wayne Gretzky",
-            "The secret of getting ahead is getting started. - Mark Twain",
-            "Done is better than perfect. - Sheryl Sandberg",
-            "If you're going through hell, keep going. - Churchill",
-            "The best time to plant a tree was 20 years ago. The second best time is now. - Proverb",
-            "Genius is 1% inspiration and 99% perspiration. - Edison",
-            "It always seems impossible until it's done. - Mandela",
-            "You don't have to be great to start, but you have to start to be great. - Zig Ziglar",
-            "The only way to do great work is to love what you do. - Steve Jobs",
-            "In the middle of difficulty lies opportunity. - Einstein",
-            "Success is not final, failure is not fatal. - Churchill",
-            "Work while they sleep. Learn while they party. Save while they spend. - Anonymous",
-            "The future belongs to those who believe in their dreams. - Eleanor Roosevelt",
-            "Stay hungry. Stay foolish. - Steve Jobs",
-            "If you want to go fast, go alone. If you want to go far, go together. - African Proverb",
-            "The only limit to our realization of tomorrow is our doubts of today. - FDR",
-            "An investment in knowledge pays the best interest. - Benjamin Franklin",
-            "You are what you repeatedly do. Excellence is not an act, but a habit. - Aristotle",
-        ]
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
-        return lines[dayOfYear % lines.count]
+    private var smartTagline: String {
+        let userRate  = dodoManager.todayUserRate(from: taskManager)
+        let ghostRate = dodoManager.todayGhostRate(from: taskManager)
+        let remaining = todayTasks.count
+        let done      = completedToday.count
+        let total     = done + remaining
+        let hour      = Calendar.current.component(.hour, from: Date())
+        let userPct   = Int(userRate  * 100)
+        let ghostPct  = Int(ghostRate * 100)
+        let gap       = ghostPct - userPct
+
+        // No tasks added at all
+        if total == 0 {
+            if hour < 12 { return "No tasks yet. Dodo's already planning." }
+            if hour < 17 { return "It's \(hour)pm. Still nothing added." }
+            return "No tasks. Not even a plan. Okay."
+        }
+
+        // Everything done
+        if remaining == 0 {
+            if userPct > ghostPct { return "Done. You beat Dodo. \(userPct)% vs \(ghostPct)%. Rare." }
+            if userPct == ghostPct { return "Done. Tied with Dodo. Could've been worse." }
+            return "Done. Dodo still got \(ghostPct)%. You got \(userPct)%."
+        }
+
+        // Tasks exist, some still remaining
+        if gap > 20 { return "\(remaining) left. Dodo's at \(ghostPct)%. You're at \(userPct)%." }
+        if gap > 0  { return "\(remaining) left. \(gap)% behind Dodo. One task closes it." }
+        if gap == 0 && userPct > 0 { return "Tied with Dodo at \(userPct)%. \(remaining) tasks left." }
+        if gap < 0  { return "Ahead of Dodo by \(abs(gap))%. \(remaining) left. Don't stop." }
+
+        return "\(remaining) tasks left. Make them count."
+    }
+
+    private var smartGreeting: String {
+        let userRate  = dodoManager.todayUserRate(from: taskManager)
+        let ghostRate = dodoManager.todayGhostRate(from: taskManager)
+        let done      = completedToday.count
+        let total     = done + todayTasks.count
+
+        guard total > 0 else { return greeting }
+        if todayTasks.count == 0 { return "All done" }
+
+        let gap = Int((ghostRate - userRate) * 100)
+        if gap > 20  { return "Falling behind" }
+        if gap > 0   { return "Almost there" }
+        if gap == 0 && Int(userRate * 100) > 0 { return "Dead even" }
+        if gap < 0   { return "You're ahead" }
+
+        return greeting
     }
 
     private var todayTasks: [TodoTask] {
@@ -239,16 +264,21 @@ struct TodayView: View {
 
                     // Header
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(greeting)
+                        Text(smartGreeting)
                             .font(.title2)
                             .foregroundColor(
-                                greeting == "Night owl mode" ? Color(hex: "#FFD700") :
-                                greeting == "Still going?"   ? Color(hex: "#F97316") :
-                                greeting == "Rise and grind" ? Color(hex: "#34D399") :
+                                smartGreeting == "Falling behind" ? Color(hex: "#F97316") :
+                                smartGreeting == "You're ahead"   ? Color(hex: "#34D399") :
+                                smartGreeting == "All done"       ? Color(hex: "#34D399") :
+                                smartGreeting == "Dead even"      ? Color(hex: "#FFD700") :
+                                smartGreeting == "Almost there"   ? Color(hex: "#FFD700") :
+                                smartGreeting == "Night owl mode" ? Color(hex: "#FFD700") :
+                                smartGreeting == "Still going?"   ? Color(hex: "#F97316") :
+                                smartGreeting == "Rise and grind" ? Color(hex: "#34D399") :
                                 .secondary
                             )
                             .fontWeight(.bold)
-                        Text(tagline)
+                        Text(smartTagline)
                             .font(.largeTitle.bold())
                     }
                     .padding(.horizontal)
