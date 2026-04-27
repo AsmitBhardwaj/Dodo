@@ -285,6 +285,13 @@ struct TaskDayList: View {
                             DraggableTaskCard(task: task, draggingTask: $draggingTask)
                                 .environmentObject(taskManager)
                                 .environmentObject(dodoManager)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation { taskManager.deleteTask(task) }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                         }
 
                         if !done.isEmpty {
@@ -301,6 +308,13 @@ struct TaskDayList: View {
                                     .environmentObject(taskManager)
                                     .environmentObject(dodoManager)
                                     .opacity(0.5)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            withAnimation { taskManager.deleteTask(task) }
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
                             }
                         }
                     }
