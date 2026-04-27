@@ -38,7 +38,7 @@ struct ContentView: View {
             }
 
             if showGreeting {
-                GreetingSplashView(greeting: currentGreeting, isShowing: $showGreeting)
+                GreetingSplashView(greeting: currentGreeting, tagline: tagline, isShowing: $showGreeting)
                     .transition(.opacity)
                     .zIndex(1)
             }
@@ -59,7 +59,9 @@ struct ContentView: View {
 
 struct GreetingSplashView: View {
     let greeting: String
+    let tagline: String
     @Binding var isShowing: Bool
+    
 
     var body: some View {
         ZStack {
@@ -68,29 +70,48 @@ struct GreetingSplashView: View {
                 .onTapGesture { withAnimation(.spring()) { isShowing = false } }
 
             VStack(spacing: 12) {
-                Text(greeting == "Good morning" ? "🌅" : greeting == "Good afternoon" ? "☀️" : "🌙")
-                    .font(.system(size: 60))
+                // Time label — golden for night
                 Text(greeting)
-                    .font(.largeTitle.bold())
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(greeting == "Night owl mode" ? Color(hex: "#FFD700") : .white.opacity(0.6))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Emoji
+                Text(greeting == "Rise and grind" ? "🌅" : greeting == "Still going?" ? "☀️" : "🌙")
+                    .font(.system(size: 36))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Quote — auto-shrinks if too long
+                Text(tagline)
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Subtext
                 Text("You've got tasks. The question is whether you'll actually do them.")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                Button("Let's go →") {
+                    .foregroundColor(.white.opacity(0.6))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Button — sharp, no radius
+                Button("Dodo it.") {
                     withAnimation(.spring()) { isShowing = false }
                 }
                 .padding(.horizontal, 32)
-                .padding(.vertical, 12)
+                .padding(.vertical, 14)
                 .background(Color.dodoOrange)
                 .foregroundColor(.white)
-                .cornerRadius(25)
+                .cornerRadius(0)
+                .frame(maxWidth: .infinity)
                 .padding(.top, 8)
             }
-            .padding(32)
-            .background(Color(.systemGray6).opacity(0.97))
-            .cornerRadius(24)
-            .padding(40)
+            .padding(28)
+            .background(Color(white: 0.1))
+            .cornerRadius(0)
+            .padding(24)
+            
         }
     }
 }
@@ -106,9 +127,9 @@ struct TodayView: View {
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 5..<12:  return "Good morning"
-        case 12..<17: return "Good afternoon"
-        default:      return "Good evening"
+        case 5..<12:  return "Rise and grind"
+        case 12..<17: return "Still going?"
+        default:      return "Night owl mode"
         }
     }
     private var missedYesterday: Bool {
@@ -130,18 +151,26 @@ struct TodayView: View {
 
     private var tagline: String {
         let lines = [
-            "You know what you need to do.",
-            "Either you do it or you don't.",
-            "No one's coming to save you.",
-            "Your streak won't keep itself.",
-            "The gap between you and your potential is today.",
-            "Small wins add up. So do excuses.",
-            "Do the thing you've been putting off.",
-            "You've been here before. Finish this time.",
-            "Stop thinking. Start doing.",
-            "Future you is watching.",
-            "Discipline is just doing it when you don't feel like it.",
-            "You already know what needs to happen.",
+            "A person who never made a mistake never tried anything new. - Einstein",
+            "It does not matter how slowly you go as long as you do not stop. - Confucius",
+            "You miss 100% of the shots you don't take. - Wayne Gretzky",
+            "The secret of getting ahead is getting started. - Mark Twain",
+            "Done is better than perfect. - Sheryl Sandberg",
+            "If you're going through hell, keep going. - Churchill",
+            "The best time to plant a tree was 20 years ago. The second best time is now. - Proverb",
+            "Genius is 1% inspiration and 99% perspiration. - Edison",
+            "It always seems impossible until it's done. - Mandela",
+            "You don't have to be great to start, but you have to start to be great. - Zig Ziglar",
+            "The only way to do great work is to love what you do. - Steve Jobs",
+            "In the middle of difficulty lies opportunity. - Einstein",
+            "Success is not final, failure is not fatal. - Churchill",
+            "Work while they sleep. Learn while they party. Save while they spend. - Anonymous",
+            "The future belongs to those who believe in their dreams. - Eleanor Roosevelt",
+            "Stay hungry. Stay foolish. - Steve Jobs",
+            "If you want to go fast, go alone. If you want to go far, go together. - African Proverb",
+            "The only limit to our realization of tomorrow is our doubts of today. - FDR",
+            "An investment in knowledge pays the best interest. - Benjamin Franklin",
+            "You are what you repeatedly do. Excellence is not an act, but a habit. - Aristotle",
         ]
         let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
         return lines[dayOfYear % lines.count]
