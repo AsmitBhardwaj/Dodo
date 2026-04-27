@@ -32,11 +32,6 @@ struct TaskListView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Text(selectedDate, format: .dateTime.weekday(.wide).month(.wide).day())
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.primary)
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddTask = true }) {
                         Image(systemName: "plus").fontWeight(.semibold)
