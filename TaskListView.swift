@@ -279,48 +279,55 @@ struct TaskDayList: View {
                 EmptyDayView(date: selectedDate)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    VStack(spacing: 10) {
-                        ForEach(pending) { task in
-                            DraggableTaskCard(task: task, draggingTask: $draggingTask)
-                                .environmentObject(taskManager)
-                                .environmentObject(dodoManager)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        withAnimation { taskManager.deleteTask(task) }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+                List {
+                    ForEach(pending) { task in
+                        DraggableTaskCard(task: task, draggingTask: $draggingTask)
+                            .environmentObject(taskManager)
+                            .environmentObject(dodoManager)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    taskManager.deleteTask(task)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
-                        }
-
-                        if !done.isEmpty {
-                            HStack {
-                                Text("Completed").font(.caption).foregroundColor(.secondary)
-                                Spacer()
-                                Text("\(done.count)").font(.caption).foregroundColor(.secondary)
                             }
-                            .padding(.horizontal)
-                            .padding(.top, 4)
+                    }
 
+                    if !done.isEmpty {
+                        Section {
                             ForEach(done) { task in
                                 TaskCard(task: task)
                                     .environmentObject(taskManager)
                                     .environmentObject(dodoManager)
                                     .opacity(0.5)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
-                                            withAnimation { taskManager.deleteTask(task) }
+                                            taskManager.deleteTask(task)
                                         } label: {
                                             Label("Delete", systemImage: "trash")
                                         }
                                     }
                             }
+                        } header: {
+                            HStack {
+                                Text("Completed")
+                                Spacer()
+                                Text("\(done.count)")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .textCase(nil)
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 40)
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
         }
     }
