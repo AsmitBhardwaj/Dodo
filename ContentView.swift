@@ -349,13 +349,6 @@ struct TodayView: View {
                             .background(Color(.secondarySystemBackground))
                             .cornerRadius(12)
                             .padding(.horizontal)
-
-                            if todayTasks.count > 5 {
-                                Button("See all \(todayTasks.count) tasks →") { }
-                                    .font(.subheadline)
-                                    .foregroundColor(.dodoOrange)
-                                    .padding(.horizontal)
-                            }
                         }
                     }
 

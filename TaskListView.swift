@@ -12,7 +12,6 @@ struct TaskListView: View {
     @EnvironmentObject var dodoManager: DodoManager
 
     @State private var selectedDate: Date = Date().startOfDay
-    @State private var draggingTask: TodoTask? = nil
     @State private var showingAddTask = false
 
     var body: some View {
@@ -26,7 +25,7 @@ struct TaskListView: View {
                 Divider().background(Color.white.opacity(0.08))
 
                 // ── Task list for selected date ──────────────────────────
-                TaskDayList(selectedDate: selectedDate, draggingTask: $draggingTask)
+                TaskDayList(selectedDate: selectedDate)
                     .environmentObject(taskManager)
                     .environmentObject(dodoManager)
             }
@@ -52,7 +51,6 @@ struct TaskListView: View {
 struct MonthGridView: View {
     @Binding var displayedMonth: Date
     @Binding var selectedDate: Date?
-    @Binding var draggingTask: TodoTask?
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
 
@@ -111,9 +109,6 @@ struct MonthGridView: View {
                                     selectedDate = selectedDate?.isSameDay(as: date) == true ? nil : date
                                 }
                             }
-                            .onDrop(of: ["public.text"], isTargeted: nil) { _ in
-                                reschedule(to: date); return true
-                            }
                         } else {
                             Color.clear.frame(height: 86)
                         }
@@ -122,17 +117,6 @@ struct MonthGridView: View {
                 .padding(.horizontal, 4)
             }
             .frame(height: 340)
-        }
-    }
-
-    private func reschedule(to date: Date) {
-        guard var task = draggingTask else { return }
-        taskManager.deleteTask(task)
-        task.dueDate = date.startOfDay
-        taskManager.addTask(task)
-        draggingTask = nil
-        if date.isSameDay(as: Date()) {
-            dodoManager.taskCompleted(amount: 2)
         }
     }
 }
@@ -252,7 +236,6 @@ struct MiniChip: View {
 
 struct TaskDayList: View {
     let selectedDate: Date
-    @Binding var draggingTask: TodoTask?
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
 
@@ -281,7 +264,7 @@ struct TaskDayList: View {
             } else {
                 List {
                     ForEach(pending) { task in
-                        DraggableTaskCard(task: task, draggingTask: $draggingTask)
+                        TaskCard(task: task)
                             .environmentObject(taskManager)
                             .environmentObject(dodoManager)
                             .listRowBackground(Color.clear)
@@ -330,53 +313,6 @@ struct TaskDayList: View {
                 .scrollContentBackground(.hidden)
             }
         }
-    }
-}
-
-// MARK: - Draggable Task Card
-
-struct DraggableTaskCard: View {
-    let task: TodoTask
-    @Binding var draggingTask: TodoTask?
-    @EnvironmentObject var taskManager: TaskManager
-    @EnvironmentObject var dodoManager: DodoManager
-
-    @State private var isDragging = false
-    @State private var dragOffset: CGSize = .zero
-
-    var body: some View {
-        TaskCard(task: task)
-            .environmentObject(taskManager)
-            .environmentObject(dodoManager)
-            .scaleEffect(isDragging ? 1.04 : 1.0)
-            .shadow(color: isDragging ? Color.dodoOrange.opacity(0.4) : .clear, radius: 16)
-            .offset(dragOffset)
-            .zIndex(isDragging ? 10 : 0)
-            .gesture(
-                LongPressGesture(minimumDuration: 0.4)
-                    .onEnded { _ in
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        withAnimation(.spring(response: 0.3)) {
-                            isDragging = true
-                            draggingTask = task
-                        }
-                    }
-                    .sequenced(before: DragGesture())
-                    .onEnded { _ in
-                        withAnimation(.spring()) { isDragging = false; dragOffset = .zero }
-                    }
-            )
-            .simultaneousGesture(
-                DragGesture()
-                    .onChanged { v in if isDragging { dragOffset = v.translation } }
-                    .onEnded { _ in
-                        withAnimation(.spring()) {
-                            isDragging = false; dragOffset = .zero; draggingTask = nil
-                        }
-                    },
-                including: isDragging ? .all : .subviews
-            )
-            .animation(.spring(response: 0.3), value: isDragging)
     }
 }
 
