@@ -16,7 +16,10 @@ struct DodoStats: Codable {
     var level: Int = 1
     var totalTasksCompleted: Int = 0
     var currentStreak: Int = 0
+    var personalBest: Int = 0
     var lastActiveDate: Date = Date()
+    var userHistory: [String: Double] = [:]
+    var ghostHistory: [String: Double] = [:]
 
     var xpToNextLevel: Int {
         let thresholds = [10, 25, 45, 70, 100, 140, 190, 250, 320, 400]
@@ -108,12 +111,61 @@ class DodoManager: ObservableObject {
         }
     }
 
+    // MARK: - Ghost (Dodo) Mechanic
+
+    private func dateKey(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
+    }
+
+    func updateGhost(from taskManager: TaskManager) {
+        let today = Date().startOfDay
+        let key = dateKey(today)
+        let yourRate = taskManager.hasTasks(for: today)
+            ? taskManager.progress(for: today) : 0.0
+        let ghostRate = min(1.0, yourRate + 0.25)
+        stats.userHistory[key] = yourRate
+        stats.ghostHistory[key] = ghostRate
+        if stats.currentStreak > stats.personalBest {
+            stats.personalBest = stats.currentStreak
+        }
+        saveStats()
+    }
+
+    func todayUserRate(from taskManager: TaskManager) -> Double {
+        guard taskManager.hasTasks(for: Date().startOfDay) else { return 0 }
+        return taskManager.progress(for: Date().startOfDay)
+    }
+
+    func todayGhostRate(from taskManager: TaskManager) -> Double {
+        min(1.0, todayUserRate(from: taskManager) + 0.25)
+    }
+
+    /// Returns (userDays, ghostDays) for the last 7 days where completion >= 50%
+    func weeklyScore(from taskManager: TaskManager) -> (user: Int, dodo: Int) {
+        let cal = Calendar.current
+        var userDays = 0
+        var dodoDays = 0
+        for i in 0..<7 {
+            guard let date = cal.date(byAdding: .day, value: -i,
+                                      to: Date().startOfDay) else { continue }
+            let key = dateKey(date)
+            if let r = stats.userHistory[key],  r >= 0.5 { userDays += 1 }
+            if let r = stats.ghostHistory[key], r >= 0.5 { dodoDays += 1 }
+        }
+        return (userDays, dodoDays)
+    }
+
     // MARK: - Task Completion
 
     func taskCompleted(amount: Int) {
         stats.totalTasksCompleted += 1
         stats.currentStreak += 1
         stats.lastActiveDate = Date()
+        if stats.currentStreak > stats.personalBest {
+            stats.personalBest = stats.currentStreak
+        }
         checkLevelUp()
         saveStats()
     }
