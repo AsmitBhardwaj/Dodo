@@ -37,7 +37,14 @@ struct TaskListView: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.primary)
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingAddTask = true }) {
+                        Image(systemName: "plus").fontWeight(.semibold)
+                    }
+                    .tint(.dodoOrange)
+                }
             }
+            
             .sheet(isPresented: $showingAddTask) {
                 AddTaskView(defaultDate: selectedDate)
                     .environmentObject(taskManager)
