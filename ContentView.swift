@@ -536,8 +536,8 @@ struct AllDoneCard: View {
                         StreakHeaderCard()
                             .padding(.horizontal)
 
-                        // Heatmap
-                        ActivityHeatmapView()
+                        //Flame chart
+                        FlameChartView()
                             .environmentObject(taskManager)
                             .padding(.horizontal)
 
@@ -1193,6 +1193,170 @@ struct WeeklyReportCard: View {
         .padding(16)
         .background(Color(white: 0.1))
         .cornerRadius(16)
+    }
+}
+// MARK: - Flame Chart
+
+struct FlameChartView: View {
+    @EnvironmentObject var taskManager: TaskManager
+
+    private let days = 30
+    private let cal = Calendar.current
+
+    private struct DayBar {
+        let date: Date
+        let progress: Double  // 0.0–1.0
+        let hasTask: Bool
+    }
+
+    private var bars: [DayBar] {
+        (0..<days).reversed().compactMap { offset in
+            guard let date = cal.date(byAdding: .day, value: -offset, to: Date().startOfDay)
+            else { return nil }
+            let hasTasks = taskManager.hasTasks(for: date)
+            let progress = taskManager.progress(for: date)
+            return DayBar(date: date, progress: progress, hasTask: hasTasks)
+        }
+    }
+
+    private var daysActive: Int {
+        bars.filter { $0.hasTask && $0.progress > 0 }.count
+    }
+
+    private var vsLastMonth: Int {
+        let thisMonth = bars.suffix(15).map(\.progress).reduce(0, +) / 15
+        let lastMonth = bars.prefix(15).map(\.progress).reduce(0, +) / 15
+        guard lastMonth > 0 else { return 0 }
+        return Int(((thisMonth - lastMonth) / lastMonth) * 100)
+    }
+
+    private func barColor(_ bar: DayBar) -> Color {
+        if !bar.hasTask { return Color(white: 0.12) }
+        switch bar.progress {
+        case 0.9...: return Color(hex: "#F97316")
+        case 0.6..<0.9: return Color(hex: "#c96010")
+        case 0.3..<0.6: return Color(hex: "#7a3500")
+        default: return Color(hex: "#4a2000")
+        }
+    }
+
+    private func isToday(_ date: Date) -> Bool {
+        cal.isDateInToday(date)
+    }
+
+    private func dateLabel(_ offset: Int) -> String {
+        guard let date = cal.date(byAdding: .day, value: -(days - 1 - offset), to: Date().startOfDay)
+        else { return "" }
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f.string(from: date)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            HStack {
+                Text("Last 30 days")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(hex: "#F97316"))
+                    .tracking(1.5)
+                    .textCase(.uppercase)
+                Spacer()
+                Text("today →")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(white: 0.25))
+            }
+
+            // Bars
+            GeometryReader { geo in
+                let barWidth = (geo.size.width - CGFloat(days - 1) * 3) / CGFloat(days)
+                HStack(alignment: .bottom, spacing: 3) {
+                    ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
+                        let height = bar.hasTask
+                            ? max(4, 80 * bar.progress)
+                            : 4.0
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(barColor(bar))
+                            .frame(width: barWidth, height: height)
+                            .overlay(
+                                isToday(bar.date)
+                                ? RoundedRectangle(cornerRadius: 3)
+                                    .stroke(Color(hex: "#F97316"), lineWidth: 1.5)
+                                : nil
+                            )
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .bottom)
+            }
+            .frame(height: 80)
+
+            // Date labels
+            HStack {
+                Text(dateLabel(0))
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(white: 0.25))
+                Spacer()
+                Text(dateLabel(10))
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(white: 0.25))
+                Spacer()
+                Text(dateLabel(20))
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(white: 0.25))
+                Spacer()
+                Text("Today")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color(hex: "#F97316"))
+            }
+
+            Divider().background(Color(white: 0.12))
+
+            // Stats row
+            HStack(spacing: 0) {
+                VStack(spacing: 2) {
+                    Text("\(daysActive)/30")
+                        .font(.system(size: 16, weight: .heavy))
+                        .foregroundColor(.white)
+                    Text("days active")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(white: 0.35))
+                }
+                .frame(maxWidth: .infinity)
+
+                VStack(spacing: 2) {
+                    Text("\(dodoStreak())")
+                        .font(.system(size: 16, weight: .heavy))
+                        .foregroundColor(Color(hex: "#F97316"))
+                    Text("day streak")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(white: 0.35))
+                }
+                .frame(maxWidth: .infinity)
+
+                VStack(spacing: 2) {
+                    let delta = vsLastMonth
+                    Text(delta >= 0 ? "↑ \(delta)%" : "↓ \(abs(delta))%")
+                        .font(.system(size: 16, weight: .heavy))
+                        .foregroundColor(delta >= 0 ? Color(hex: "#22C55E") : Color(hex: "#FF4444"))
+                    Text("vs last 15d")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(white: 0.35))
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(16)
+        .background(Color(white: 0.1))
+        .cornerRadius(16)
+    }
+
+    private func dodoStreak() -> Int {
+        var streak = 0
+        for bar in bars.reversed() {
+            if bar.hasTask && bar.progress > 0 { streak += 1 }
+            else if bar.hasTask { break }
+        }
+        return streak
     }
 }
 
