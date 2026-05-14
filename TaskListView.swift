@@ -389,12 +389,11 @@ struct TaskCard: View {
         .overlay(Group { if showConfetti { ConfettiView() } })
     }
 
+    // NEW
     private func completeTask() {
         withAnimation(.spring()) {
             taskManager.completeTask(task)
-            task.category == .train
-                ? dodoManager.healthTaskCompleted(amount: task.rewardValue)
-                : dodoManager.taskCompleted(amount: task.rewardValue)
+            dodoManager.taskCompleted(amount: task.rewardValue)
             showConfetti = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showConfetti = false }
         }

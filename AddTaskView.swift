@@ -47,6 +47,7 @@ struct AddTaskView: View {
                                                     Button(d.label) {
                                                         selectedDuration = d
                                                     }
+                                                    .buttonStyle(.borderless)
                                                     .font(.system(size: 13, weight: .medium))
                                                     .padding(.horizontal, 10)
                                                     .padding(.vertical, 6)

@@ -179,59 +179,6 @@ struct TodayView: View {
         missedYesterday && !bannerDismissed && completedToday.isEmpty
     }
 
-    private var smartTagline: String {
-        let userRate  = dodoManager.todayUserRate(from: taskManager)
-        let ghostRate = dodoManager.todayGhostRate(from: taskManager)
-        let remaining = todayTasks.count
-        let done      = completedToday.count
-        let total     = done + remaining
-        let hour      = Calendar.current.component(.hour, from: Date())
-        let userPct   = Int(userRate  * 100)
-        let ghostPct  = Int(ghostRate * 100)
-        let gap       = ghostPct - userPct
-
-        // No tasks added at all
-        if total == 0 {
-            if hour < 12 { return "No tasks yet. Dodo's already planning." }
-            if hour < 17 { return "It's \(hour)pm. Still nothing added." }
-            return "No tasks. Not even a plan. Okay."
-        }
-
-        // Everything done
-        if remaining == 0 {
-            if userPct > ghostPct { return "Done. You beat Dodo. \(userPct)% vs \(ghostPct)%. Rare." }
-            if userPct == ghostPct { return "Done. Tied with Dodo. Could've been worse." }
-            return "Done. Dodo still got \(ghostPct)%. You got \(userPct)%."
-        }
-
-        // Tasks exist, some still remaining
-        if gap > 20 { return "\(remaining) left. Dodo's at \(ghostPct)%. You're at \(userPct)%." }
-        if gap > 0  { return "\(remaining) left. \(gap)% behind Dodo. One task closes it." }
-        if gap == 0 && userPct > 0 { return "Tied with Dodo at \(userPct)%. \(remaining) tasks left." }
-        if gap < 0  { return "Ahead of Dodo by \(abs(gap))%. \(remaining) left. Don't stop." }
-
-        return "\(remaining) tasks left. Make them count."
-    }
-
-    private var smartGreeting: String {
-        let userRate  = dodoManager.todayUserRate(from: taskManager)
-        let ghostRate = dodoManager.todayGhostRate(from: taskManager)
-        let done      = completedToday.count
-        let total     = done + todayTasks.count
-
-        guard total > 0 else { return greeting }
-        if todayTasks.count == 0 { return "All done" }
-
-        // Replace lines 225-226 with:
-        let gap = Int(ghostRate * 100) - Int(userRate * 100)
-        if gap > 20  { return "Falling behind" }
-        if gap > 0   { return "Almost there" }
-        if gap == 0 && Int(userRate * 100) > 0 { return "Dead even" }
-        if gap < 0   { return "You're ahead" }
-
-        return greeting
-    }
-
     private var todayTasks: [TodoTask] {
         taskManager.tasks
             .filter { !$0.isCompleted && Calendar.current.isDateInToday($0.dueDate) }
@@ -286,12 +233,6 @@ struct TodayView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 8)
-                    
-                    DodoRaceCard(
-                        userRate: dodoManager.todayUserRate(from: taskManager),
-                        ghostRate: dodoManager.todayGhostRate(from: taskManager)
-                    )
-                    .padding(.horizontal)
                     
                     // Recovery banner
                     if shouldShowRecoveryBanner {
@@ -565,13 +506,6 @@ struct AllDoneCard: View {
                         .padding(.vertical, 16)
                         .background(Color(.secondarySystemBackground))
                         .cornerRadius(16)
-                        .padding(.horizontal)
-
-                        // Dodo vs You
-                        DodoWeeklyScoreCard(
-                            userDays: dodoManager.weeklyScore(from: taskManager).user,
-                            dodoDays: dodoManager.weeklyScore(from: taskManager).dodo
-                        )
                         .padding(.horizontal)
                     }
                     .padding(.top, 8)
