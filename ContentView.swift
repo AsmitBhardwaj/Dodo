@@ -222,7 +222,8 @@ struct TodayView: View {
         guard total > 0 else { return greeting }
         if todayTasks.count == 0 { return "All done" }
 
-        let gap = Int((ghostRate - userRate) * 100)
+        let diff : Double = ghostRate - userRate
+        let gap = Int(diff)
         if gap > 20  { return "Falling behind" }
         if gap > 0   { return "Almost there" }
         if gap == 0 && Int(userRate * 100) > 0 { return "Dead even" }
