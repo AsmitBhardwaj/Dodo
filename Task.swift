@@ -13,6 +13,7 @@ extension Date {
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)
     }
+    
 
     /// True if this date falls on the same calendar day as `other`
     func isSameDay(as other: Date) -> Bool {
@@ -31,6 +32,7 @@ struct TodoTask: Identifiable, Codable {
     var rewardValue: Int
     /// Defaults to midnight of the day the task was created
     var dueDate: Date = Date().startOfDay
+    var duration: TaskDuration = .short
 
     enum TaskCategory: String, Codable, CaseIterable {
         case ship    = "Ship"
@@ -40,10 +42,11 @@ struct TodoTask: Identifiable, Codable {
 
         var emoji: String {
             switch self {
+            // NEW
             case .ship:    return "🚀"
-            case .sharpen: return "🎯"
-            case .train:   return "💪"
-            case .clear:   return "✅"
+            case .sharpen: return "⚗️"
+            case .train:   return "🫀"
+            case .clear:   return "💪"
             }
         }
 
@@ -53,6 +56,22 @@ struct TodoTask: Identifiable, Codable {
             case .sharpen: return "blue"
             case .train:   return "green"
             case .clear:   return "purple"
+            }
+        }
+    }
+    
+    enum TaskDuration: Int, Codable, CaseIterable {
+        case quick  = 5
+        case short  = 30
+        case medium = 60
+        case long   = 120
+
+        var label: String {
+            switch self {
+            case .quick:  return "< 5 min"
+            case .short:  return "30 min"
+            case .medium: return "1 hr"
+            case .long:   return "2 hr+"
             }
         }
     }

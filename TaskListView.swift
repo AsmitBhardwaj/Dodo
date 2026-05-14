@@ -248,7 +248,9 @@ struct TaskDayList: View {
     }
 
     var body: some View {
+        // NEW
         let pending = taskManager.pendingTasks(for: selectedDate)
+            .sorted { $0.duration.rawValue < $1.duration.rawValue }
         let done    = taskManager.completedTasks(for: selectedDate)
 
         VStack(alignment: .leading, spacing: 0) {

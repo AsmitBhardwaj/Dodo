@@ -16,6 +16,7 @@ struct AddTaskView: View {
     // NEW
     @State private var selectedCategory: TodoTask.TaskCategory = .ship
     @State private var dueDate: Date
+    @State private var selectedDuration: TodoTask.TaskDuration = .short
 
     init(defaultDate: Date = Date().startOfDay) {
         self.defaultDate = defaultDate
@@ -37,6 +38,24 @@ struct AddTaskView: View {
                             .tag(category)
                         }
                     }
+                    VStack(alignment: .leading, spacing: 8) {
+                                            Text("How long?")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            HStack(spacing: 8) {
+                                                ForEach(TodoTask.TaskDuration.allCases, id: \.self) { d in
+                                                    Button(d.label) {
+                                                        selectedDuration = d
+                                                    }
+                                                    .font(.system(size: 13, weight: .medium))
+                                                    .padding(.horizontal, 10)
+                                                    .padding(.vertical, 6)
+                                                    .background(selectedDuration == d ? Color.dodoOrange : Color(.tertiarySystemBackground))
+                                                    .foregroundColor(selectedDuration == d ? .black : .primary)
+                                                    .clipShape(Capsule())
+                                                }
+                                            }
+                                        }
                     
                     DatePicker("Due Date", selection: $dueDate, displayedComponents: .date)
                         .tint(.dodoOrange)
@@ -64,7 +83,8 @@ struct AddTaskView: View {
             title: taskTitle,
             category: selectedCategory,
             rewardValue: 0,
-            dueDate: dueDate.startOfDay
+            dueDate: dueDate.startOfDay,
+            duration: selectedDuration
         )
         taskManager.addTask(newTask)
         dismiss()

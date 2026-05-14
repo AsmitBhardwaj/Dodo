@@ -222,8 +222,8 @@ struct TodayView: View {
         guard total > 0 else { return greeting }
         if todayTasks.count == 0 { return "All done" }
 
-        let diff : Double = ghostRate - userRate
-        let gap = Int(diff)
+        // Replace lines 225-226 with:
+        let gap = Int(ghostRate * 100) - Int(userRate * 100)
         if gap > 20  { return "Falling behind" }
         if gap > 0   { return "Almost there" }
         if gap == 0 && Int(userRate * 100) > 0 { return "Dead even" }
@@ -233,7 +233,9 @@ struct TodayView: View {
     }
 
     private var todayTasks: [TodoTask] {
-        taskManager.tasks.filter { !$0.isCompleted && Calendar.current.isDateInToday($0.dueDate) }
+        taskManager.tasks
+            .filter { !$0.isCompleted && Calendar.current.isDateInToday($0.dueDate) }
+            .sorted { $0.duration.rawValue < $1.duration.rawValue }
     }
 
     private var completedToday: [TodoTask] {
