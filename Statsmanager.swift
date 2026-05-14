@@ -33,17 +33,17 @@ enum StatType: String, CaseIterable {
 
     var taskHint: String {
         switch self {
-        case .focus:       return "Log a school task to rebuild."
-        case .mood:        return "Log a personal or social task."
-        case .consistency: return "One health task. Right now."
+        case .focus:       return "Ship something. Anything."
+        case .mood:        return "Sharpen or clear the plate."
+        case .consistency: return "One train task. Right now."
         }
     }
 
     var relevantCategories: [TodoTask.TaskCategory] {
         switch self {
-        case .focus:       return [.school]
-        case .mood:        return [.personal, .social]
-        case .consistency: return [.health]
+        case .focus:       return [.ship]
+        case .mood:        return [.sharpen, .clear]
+        case .consistency: return [.train]
         }
     }
 }

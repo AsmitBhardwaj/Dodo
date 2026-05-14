@@ -678,12 +678,13 @@ struct CategoryRow: View {
         maxCount == 0 ? 0 : Double(count) / Double(maxCount)
     }
 
+    // NEW
     private var color: Color {
         switch category {
-        case .school:   return .dodoOrange
-        case .health:   return .green
-        case .personal: return Color(red: 0.4, green: 0.6, blue: 1.0)
-        case .social:   return Color(red: 0.9, green: 0.4, blue: 0.7)
+        case .ship:    return .dodoOrange
+        case .train:   return .green
+        case .sharpen: return Color(red: 0.4, green: 0.6, blue: 1.0)
+        case .clear:   return Color(red: 0.9, green: 0.4, blue: 0.7)
         }
     }
 

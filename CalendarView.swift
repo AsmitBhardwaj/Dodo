@@ -253,12 +253,13 @@ struct DayCell: View {
         .buttonStyle(.plain)
     }
 
+    // NEW
     private func categoryColor(_ category: TodoTask.TaskCategory) -> Color {
         switch category {
-        case .school:   return Color(red: 0.976, green: 0.451, blue: 0.086)
-        case .health:   return Color(red: 0.2, green: 0.78, blue: 0.35)
-        case .personal: return Color(red: 0.4, green: 0.6, blue: 1.0)
-        case .social:   return Color(red: 0.9, green: 0.4, blue: 0.7)
+        case .ship:    return Color(red: 0.976, green: 0.451, blue: 0.086) // orange
+        case .train:   return Color(red: 0.2, green: 0.78, blue: 0.35)    // green
+        case .sharpen: return Color(red: 0.4, green: 0.6, blue: 1.0)      // blue
+        case .clear:   return Color(red: 0.9, green: 0.4, blue: 0.7)      // purple
         }
     }
 }

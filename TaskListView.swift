@@ -390,7 +390,7 @@ struct TaskCard: View {
     private func completeTask() {
         withAnimation(.spring()) {
             taskManager.completeTask(task)
-            task.category == .health
+            task.category == .train
                 ? dodoManager.healthTaskCompleted(amount: task.rewardValue)
                 : dodoManager.taskCompleted(amount: task.rewardValue)
             showConfetti = true

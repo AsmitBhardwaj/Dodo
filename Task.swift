@@ -33,26 +33,26 @@ struct TodoTask: Identifiable, Codable {
     var dueDate: Date = Date().startOfDay
 
     enum TaskCategory: String, Codable, CaseIterable {
-        case school   = "School"
-        case health   = "Health"
-        case personal = "Personal"
-        case social   = "Social"
+        case ship    = "Ship"
+        case sharpen = "Sharpen"
+        case train   = "Train"
+        case clear   = "Clear"
 
         var emoji: String {
             switch self {
-            case .school:   return "📚"
-            case .health:   return "💪"
-            case .personal: return "✨"
-            case .social:   return "👥"
+            case .ship:    return "🚀"
+            case .sharpen: return "🎯"
+            case .train:   return "💪"
+            case .clear:   return "✅"
             }
         }
 
         var color: String {
             switch self {
-            case .school:   return "orange"
-            case .health:   return "green"
-            case .personal: return "purple"
-            case .social:   return "blue"
+            case .ship:    return "orange"
+            case .sharpen: return "blue"
+            case .train:   return "green"
+            case .clear:   return "purple"
             }
         }
     }
@@ -130,9 +130,9 @@ class TaskManager: ObservableObject {
 
     private var sampleTasks: [TodoTask] {
         [
-            TodoTask(title: "Complete CS assignment", category: .school,   rewardValue: 20, dueDate: Date().startOfDay),
-            TodoTask(title: "Morning workout",         category: .health,   rewardValue: 15, dueDate: Date().startOfDay),
-            TodoTask(title: "Read for 30 minutes",    category: .school,   rewardValue: 10, dueDate: Date().startOfDay),
+            TodoTask(title: "Complete CS assignment", category: .ship,    rewardValue: 20, dueDate: Date().startOfDay),
+            TodoTask(title: "Morning workout",         category: .train,   rewardValue: 15, dueDate: Date().startOfDay),
+            TodoTask(title: "Read for 30 minutes",    category: .sharpen, rewardValue: 10, dueDate: Date().startOfDay),
         ]
     }
 }

@@ -13,7 +13,8 @@ struct AddTaskView: View {
     var defaultDate: Date = Date().startOfDay
 
     @State private var taskTitle = ""
-    @State private var selectedCategory: TodoTask.TaskCategory = .school
+    // NEW
+    @State private var selectedCategory: TodoTask.TaskCategory = .ship
     @State private var dueDate: Date
 
     init(defaultDate: Date = Date().startOfDay) {
