@@ -1001,9 +1001,10 @@ struct WeeklyReportCard: View {
 
     private func gradeInfo(_ percent: Double) -> (String, Color) {
         switch percent {
-        case 0.9...: return ("A", Color(hex: "#22C55E"))
-        case 0.75..<0.9: return ("B", Color(hex: "#6699FF"))
-        case 0.5..<0.75: return ("C", Color(hex: "#F97316"))
+            // NEW
+            case 0.9...:    return ("A", Color(red: 0.13, green: 0.77, blue: 0.37))
+            case 0.75..<0.9: return ("B", Color(red: 0.40, green: 0.60, blue: 1.00))
+            case 0.5..<0.75: return ("C", Color.dodoOrange)
         default: return ("F", Color(white: 0.35))
         }
     }
@@ -1292,6 +1293,18 @@ struct FlameChartView: View {
             else if bar.hasTask { break }
         }
         return streak
+    }
+}
+
+extension UIImage {
+    static func emoji(_ emoji: String, size: CGFloat = 32) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
+        return renderer.image { _ in
+            (emoji as NSString).draw(
+                at: .zero,
+                withAttributes: [.font: UIFont.systemFont(ofSize: size * 0.85)]
+            )
+        }
     }
 }
 
