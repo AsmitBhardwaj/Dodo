@@ -25,7 +25,8 @@ struct ContentView: View {
             Calendar.current.isDateInToday($0.dueDate) }.count
     }
 
-    enum AppTab { case today, tasks, growth }
+    // NEW
+    enum AppTab { case today, tasks, gems, growth }
 
     var body: some View {
         ZStack {
@@ -37,6 +38,11 @@ struct ContentView: View {
                 TaskListView()
                     .tabItem { Label("Tasks", systemImage: "checklist") }
                     .tag(AppTab.tasks)
+                
+                // After TaskListView tab, before GrowthView tab:
+                GemsView()
+                    .tabItem { Label("Gems", systemImage: "diamond") }
+                    .tag(AppTab.gems)
 
                 GrowthView()
                     .tabItem { Label("Growth", systemImage: "chart.line.uptrend.xyaxis") }

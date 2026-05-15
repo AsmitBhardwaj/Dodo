@@ -11,6 +11,11 @@ import SwiftUI
 import Combine
 
 // MARK: - Stored Stats (only what can't be derived)
+struct Gem: Codable, Identifiable {
+    var id: String
+    var isUnlocked: Bool = false
+    var unlockedDate: Date?
+}
 
 struct DodoStats: Codable {
     var level: Int = 1
@@ -19,6 +24,34 @@ struct DodoStats: Codable {
     var currentStreak: Int = 0
     var personalBest: Int = 0
     var lastActiveDate: Date = Date()
+    
+    struct DodoStats: Codable {
+        var level: Int = 1
+        var totalTasksCompleted: Int = 0
+        var totalReps: Double = 0
+        var currentStreak: Int = 0
+        var personalBest: Int = 0
+        var lastActiveDate: Date = Date()
+
+        // ADD HERE
+        var gems: [Gem] = DodoStats.defaultGems
+
+        static var defaultGems: [Gem] {
+            [
+                Gem(id: "Eureka"),
+                Gem(id: "Golden Jubilee"),
+                Gem(id: "Dresden Green"),
+                Gem(id: "Black Orlov"),
+                Gem(id: "Koh-i-Noor"),
+                Gem(id: "Oppenheimer Blue"),
+                Gem(id: "Hope Diamond"),
+                Gem(id: "Pink Star"),
+                Gem(id: "Cullinan"),
+                Gem(id: "Moussaieff Red"),
+            ]
+        }
+
+        var xpToNextLevel: Int {
 
 
     var xpToNextLevel: Int {
@@ -137,6 +170,36 @@ class DodoManager: ObservableObject {
             stats.personalBest = stats.currentStreak
         }
         checkLevelUp()
+        // add this as the last line inside taskCompleted, before saveStats()
+        checkGemUnlocks()
+        saveStats()
+
+    }
+    
+    func checkGemUnlocks() {
+        let reps = stats.totalReps
+        let streak = stats.currentStreak
+
+        let conditions: [(String, Bool)] = [
+            ("Eureka",          reps >= 1),
+            ("Golden Jubilee",  reps >= 25),
+            ("Dresden Green",   streak >= 7),
+            ("Black Orlov",     reps >= 100),
+            ("Koh-i-Noor",      streak >= 14),
+            ("Oppenheimer Blue",reps >= 300),
+            ("Hope Diamond",    streak >= 30),
+            ("Pink Star",       reps >= 500 && streak >= 30),
+            ("Cullinan",        reps >= 1000),
+            ("Moussaieff Red",  reps >= 2000 && streak >= 66),
+        ]
+
+        for (id, condition) in conditions {
+            if let idx = stats.gems.firstIndex(where: { $0.id == id }),
+               !stats.gems[idx].isUnlocked && condition {
+                stats.gems[idx].isUnlocked = true
+                stats.gems[idx].unlockedDate = Date()
+            }
+        }
         saveStats()
     }
 
