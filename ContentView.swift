@@ -213,24 +213,15 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 20) {
 
                     // Header
+                    // NEW
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(smartGreeting)
-                            .font(.title2)
-                            .foregroundColor(
-                                smartGreeting == "Falling behind" ? Color(hex: "#F97316") :
-                                smartGreeting == "You're ahead"   ? Color(hex: "#34D399") :
-                                smartGreeting == "All done"       ? Color(hex: "#34D399") :
-                                smartGreeting == "Dead even"      ? Color(hex: "#FFD700") :
-                                smartGreeting == "Almost there"   ? Color(hex: "#FFD700") :
-                                smartGreeting == "Night owl mode" ? Color(hex: "#FFD700") :
-                                smartGreeting == "Still going?"   ? Color(hex: "#F97316") :
-                                smartGreeting == "Rise and grind" ? Color(hex: "#34D399") :
-                                .secondary
-                            )
-                            .fontWeight(.bold)
-                        Text(smartTagline)
-                            .font(.largeTitle.bold())
-                    }
+                                            Text(greeting)
+                                                .font(.title2)
+                                                .foregroundColor(.secondary)
+                                                .fontWeight(.bold)
+                                            Text(todayTasks.isEmpty ? "All done." : "\(todayTasks.count) task\(todayTasks.count == 1 ? "" : "s") left.")
+                                                .font(.largeTitle.bold())
+                                        }
                     .padding(.horizontal)
                     .padding(.top, 8)
                     
