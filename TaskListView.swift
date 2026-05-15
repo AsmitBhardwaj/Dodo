@@ -393,7 +393,8 @@ struct TaskCard: View {
     private func completeTask() {
         withAnimation(.spring()) {
             taskManager.completeTask(task)
-            dodoManager.taskCompleted(amount: task.rewardValue)
+            // NEW
+            dodoManager.taskCompleted(amount: Int(task.repValue))
             showConfetti = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showConfetti = false }
         }

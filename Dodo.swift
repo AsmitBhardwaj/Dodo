@@ -15,6 +15,7 @@ import Combine
 struct DodoStats: Codable {
     var level: Int = 1
     var totalTasksCompleted: Int = 0
+    var totalReps: Double = 0
     var currentStreak: Int = 0
     var personalBest: Int = 0
     var lastActiveDate: Date = Date()
@@ -114,6 +115,7 @@ class DodoManager: ObservableObject {
 
     func taskCompleted(amount: Int) {
         stats.totalTasksCompleted += 1
+        stats.totalReps += Double(amount)
 
         let cal = Calendar.current
         let today = Date().startOfDay

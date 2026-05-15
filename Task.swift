@@ -75,6 +75,24 @@ struct TodoTask: Identifiable, Codable {
             }
         }
     }
+    
+    var repValue: Double {
+            let base: Double
+            switch category {
+            case .ship:    base = 10
+            case .sharpen: base = 7
+            case .train:   base = 6
+            case .clear:   base = 3
+            }
+            let multiplier: Double
+            switch duration {
+            case .quick:  multiplier = 0.25
+            case .short:  multiplier = 1.0
+            case .medium: multiplier = 1.75
+            case .long:   multiplier = 2.5
+            }
+            return (base * multiplier).rounded()
+        }
 }
 
 // MARK: - Manager
