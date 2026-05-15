@@ -2,20 +2,20 @@
 //  Dodo.swift
 //  Dodo
 //
-//  Focus, Mood, Consistency are now COMPUTED from real task data.
-//  DodoStats only stores what cannot be derived: level, streak, total count.
-//
 
 import Foundation
 import SwiftUI
 import Combine
 
-// MARK: - Stored Stats (only what can't be derived)
+// MARK: - Gem Model
+
 struct Gem: Codable, Identifiable {
     var id: String
     var isUnlocked: Bool = false
     var unlockedDate: Date?
 }
+
+// MARK: - Stored Stats
 
 struct DodoStats: Codable {
     var level: Int = 1
@@ -24,35 +24,22 @@ struct DodoStats: Codable {
     var currentStreak: Int = 0
     var personalBest: Int = 0
     var lastActiveDate: Date = Date()
-    
-    struct DodoStats: Codable {
-        var level: Int = 1
-        var totalTasksCompleted: Int = 0
-        var totalReps: Double = 0
-        var currentStreak: Int = 0
-        var personalBest: Int = 0
-        var lastActiveDate: Date = Date()
+    var gems: [Gem] = DodoStats.defaultGems
 
-        // ADD HERE
-        var gems: [Gem] = DodoStats.defaultGems
-
-        static var defaultGems: [Gem] {
-            [
-                Gem(id: "Eureka"),
-                Gem(id: "Golden Jubilee"),
-                Gem(id: "Dresden Green"),
-                Gem(id: "Black Orlov"),
-                Gem(id: "Koh-i-Noor"),
-                Gem(id: "Oppenheimer Blue"),
-                Gem(id: "Hope Diamond"),
-                Gem(id: "Pink Star"),
-                Gem(id: "Cullinan"),
-                Gem(id: "Moussaieff Red"),
-            ]
-        }
-
-        var xpToNextLevel: Int {
-
+    static var defaultGems: [Gem] {
+        [
+            Gem(id: "Eureka"),
+            Gem(id: "Golden Jubilee"),
+            Gem(id: "Dresden Green"),
+            Gem(id: "Black Orlov"),
+            Gem(id: "Koh-i-Noor"),
+            Gem(id: "Oppenheimer Blue"),
+            Gem(id: "Hope Diamond"),
+            Gem(id: "Pink Star"),
+            Gem(id: "Cullinan"),
+            Gem(id: "Moussaieff Red"),
+        ]
+    }
 
     var xpToNextLevel: Int {
         let thresholds = [10, 25, 45, 70, 100, 140, 190, 250, 320, 400]
@@ -77,11 +64,8 @@ class DodoManager: ObservableObject {
         }
     }
 
-    // MARK: - Real Computed Stats
+    // MARK: - Computed Stats
 
-    /// Focus = today's task completion rate (0-100).
-    /// If no tasks today yet, falls back to yesterday.
-    /// Honest: starts at 0% and you earn it through the day.
     func focus(from taskManager: TaskManager) -> Double {
         let today = Date().startOfDay
         if taskManager.hasTasks(for: today) {
@@ -93,47 +77,35 @@ class DodoManager: ObservableObject {
         return taskManager.progress(for: yesterday) * 100
     }
 
-    /// Mood = weighted completion trend of the last 3 days.
-    /// Recent days count more. Reflects momentum, not just today.
-    /// No history = 50 (neutral, not a fake 100).
     func mood(from taskManager: TaskManager) -> Double {
         let cal = Calendar.current
         let weights: [(Int, Double)] = [(-1, 0.5), (-2, 0.3), (-3, 0.2)]
         var weightedTotal: Double = 0
         var usedWeight: Double = 0
-
         for (offset, weight) in weights {
-            guard let date = cal.date(byAdding: .day, value: offset,
-                                      to: Date().startOfDay),
+            guard let date = cal.date(byAdding: .day, value: offset, to: Date().startOfDay),
                   taskManager.hasTasks(for: date) else { continue }
             weightedTotal += taskManager.progress(for: date) * weight
             usedWeight += weight
         }
-
         guard usedWeight > 0 else { return 50 }
         return (weightedTotal / usedWeight) * 100
     }
 
-    /// Consistency = average completion rate over the last 7 days.
-    /// Days with no tasks are excluded — not penalised.
     func consistency(from taskManager: TaskManager) -> Double {
         let cal = Calendar.current
         var total: Double = 0
         var days = 0
-
         for i in 0..<7 {
-            guard let date = cal.date(byAdding: .day, value: -i,
-                                      to: Date().startOfDay),
+            guard let date = cal.date(byAdding: .day, value: -i, to: Date().startOfDay),
                   taskManager.hasTasks(for: date) else { continue }
             total += taskManager.progress(for: date)
             days += 1
         }
-
         guard days > 0 else { return 0 }
         return (total / Double(days)) * 100
     }
 
-    /// Status message derived from consistency — the most honest signal.
     func statusMessage(from taskManager: TaskManager) -> String {
         switch consistency(from: taskManager) {
         case 80...100: return "You're in the zone"
@@ -155,13 +127,11 @@ class DodoManager: ObservableObject {
         let lastActive = stats.lastActiveDate.startOfDay
 
         if cal.isDateInToday(lastActive) {
-            // Already counted today — don't touch streak
+            // Already counted today
         } else if let yesterday = cal.date(byAdding: .day, value: -1, to: today),
                   cal.isDate(lastActive, inSameDayAs: yesterday) {
-            // Last active was yesterday — continue streak
             stats.currentStreak += 1
         } else {
-            // Gap or first ever task — reset to 1
             stats.currentStreak = 1
         }
 
@@ -170,27 +140,27 @@ class DodoManager: ObservableObject {
             stats.personalBest = stats.currentStreak
         }
         checkLevelUp()
-        // add this as the last line inside taskCompleted, before saveStats()
         checkGemUnlocks()
         saveStats()
-
     }
-    
+
+    // MARK: - Gem Unlocks
+
     func checkGemUnlocks() {
         let reps = stats.totalReps
         let streak = stats.currentStreak
 
         let conditions: [(String, Bool)] = [
-            ("Eureka",          reps >= 1),
-            ("Golden Jubilee",  reps >= 25),
-            ("Dresden Green",   streak >= 7),
-            ("Black Orlov",     reps >= 100),
-            ("Koh-i-Noor",      streak >= 14),
-            ("Oppenheimer Blue",reps >= 300),
-            ("Hope Diamond",    streak >= 30),
-            ("Pink Star",       reps >= 500 && streak >= 30),
-            ("Cullinan",        reps >= 1000),
-            ("Moussaieff Red",  reps >= 2000 && streak >= 66),
+            ("Eureka",           reps >= 1),
+            ("Golden Jubilee",   reps >= 25),
+            ("Dresden Green",    streak >= 7),
+            ("Black Orlov",      reps >= 100),
+            ("Koh-i-Noor",       streak >= 14),
+            ("Oppenheimer Blue", reps >= 300),
+            ("Hope Diamond",     streak >= 30),
+            ("Pink Star",        reps >= 500 && streak >= 30),
+            ("Cullinan",         reps >= 1000),
+            ("Moussaieff Red",   reps >= 2000 && streak >= 66),
         ]
 
         for (id, condition) in conditions {
