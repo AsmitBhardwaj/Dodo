@@ -253,13 +253,13 @@ struct DayView: View {
         
         var body: some View {
             HStack(alignment: .top, spacing: 8) {
-                RoundedRectangle(cornerRadius: 2)
+                RoundedRectangle(cornerRadius: 3)
                     .fill(color)
-                    .frame(width: 3)
+                    .frame(width: 5)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(block.title)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundColor(block.isCompleted ? Color.white.opacity(0.4) : .white)
                         .strikethrough(block.isCompleted)
                         .lineLimit(1)
@@ -279,10 +279,14 @@ struct DayView: View {
                     .padding(.trailing, 4)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(color.opacity(block.isCompleted ? 0.06 : 0.14))
+            // NEW
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(color.opacity(block.isCompleted ? 0.08 : 0.25))
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(color.opacity(0.3), lineWidth: 0.5)
+                    .stroke(color.opacity(block.isCompleted ? 0.2 : 0.7), lineWidth: 1.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
