@@ -31,7 +31,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
-                TodayView()
+                DayView()
                     .tabItem { Label("Today", systemImage: "sun.max.fill") }
                     .tag(AppTab.today)
 
