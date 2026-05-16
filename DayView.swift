@@ -57,13 +57,17 @@ struct DayView: View {
                             }
 
                             // Time blocks
+                            // NEW
                             ForEach(todayBlocks) { block in
-                                TimeBlockView(block: block)
-                                    .offset(y: blockOffset(block))
-                                    .frame(height: blockHeight(block))
-                                    .padding(.leading, 60)
-                                    .padding(.trailing, 16)
-                                    .onTapGesture { selectedBlock = block }
+                                SwipeToDeleteBlock(block: block) {
+                                    timeBlockManager.delete(block)
+                                }
+                                .offset(y: blockOffset(block))
+                                .frame(height: blockHeight(block))
+                                .padding(.leading, 60)
+                                .padding(.trailing, 16)
+                                .onTapGesture { selectedBlock = block }
+                            }
                                     .gesture(
                                         DragGesture(minimumDistance: 50, coordinateSpace: .local)
                                             .onEnded { value in
@@ -494,6 +498,61 @@ struct TimeBlockDetailView: View {
             .navigationTitle("")
             .navigationBarHidden(true)
         }
+    }
+}
+
+// MARK: - Swipe To Delete Block
+
+struct SwipeToDeleteBlock: View {
+    let block: TimeBlock
+    let onDelete: () -> Void
+
+    @State private var offset: CGFloat = 0
+    @State private var isDeleting = false
+
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            // Red delete background
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.red)
+                .padding(.leading, 60)
+                .overlay(
+                    Image(systemName: "trash")
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .semibold))
+                        .padding(.trailing, 24),
+                    alignment: .trailing
+                )
+                .opacity(offset < -10 ? 1 : 0)
+
+            // Block content
+            TimeBlockView(block: block)
+                .offset(x: offset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            if value.translation.width < 0 {
+                                offset = value.translation.width
+                            }
+                        }
+                        .onEnded { value in
+                            if value.translation.width < -80 {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    offset = -400
+                                    isDeleting = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    onDelete()
+                                }
+                            } else {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    offset = 0
+                                }
+                            }
+                        }
+                )
+        }
+        .clipped()
     }
 }
 
