@@ -95,6 +95,22 @@ struct TodoTask: Identifiable, Codable {
         }
 }
 
+// MARK: - Time Block
+
+struct TimeBlock: Identifiable, Codable {
+    var id = UUID()
+    var title: String
+    var category: TodoTask.TaskCategory
+    var startTime: Date
+    var endTime: Date
+    var isCompleted: Bool = false
+    var linkedTaskId: UUID?
+
+    var durationMinutes: Int {
+        Int(endTime.timeIntervalSince(startTime) / 60)
+    }
+}
+
 // MARK: - Manager
 
 class TaskManager: ObservableObject {
@@ -171,5 +187,46 @@ class TaskManager: ObservableObject {
             TodoTask(title: "Morning workout",         category: .train,   rewardValue: 15, dueDate: Date().startOfDay),
             TodoTask(title: "Read for 30 minutes",    category: .sharpen, rewardValue: 10, dueDate: Date().startOfDay),
         ]
+    }
+}
+// MARK: - Time Block Manager
+
+class TimeBlockManager: ObservableObject {
+    @Published var blocks: [TimeBlock] = []
+
+    init() { load() }
+
+    func add(_ block: TimeBlock) {
+        blocks.append(block)
+        save()
+    }
+
+    func complete(_ block: TimeBlock) {
+        guard let idx = blocks.firstIndex(where: { $0.id == block.id }) else { return }
+        blocks[idx].isCompleted = true
+        save()
+    }
+
+    func delete(_ block: TimeBlock) {
+        blocks.removeAll { $0.id == block.id }
+        save()
+    }
+
+    func blocks(for date: Date) -> [TimeBlock] {
+        blocks.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) }
+            .sorted { $0.startTime < $1.startTime }
+    }
+
+    private func save() {
+        if let encoded = try? JSONEncoder().encode(blocks) {
+            UserDefaults.standard.set(encoded, forKey: "timeBlocks")
+        }
+    }
+
+    private func load() {
+        if let data = UserDefaults.standard.data(forKey: "timeBlocks"),
+           let decoded = try? JSONDecoder().decode([TimeBlock].self, from: data) {
+            blocks = decoded
+        }
     }
 }

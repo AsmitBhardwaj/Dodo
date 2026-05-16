@@ -11,6 +11,7 @@ struct DodoApp: App {
     @StateObject private var taskManager = TaskManager()
     @StateObject private var dodoManager = DodoManager()
     @StateObject private var stats = StatsManager()
+    @StateObject private var timeBlockManager = TimeBlockManager()
 
     var body: some Scene {
         WindowGroup {
@@ -18,6 +19,7 @@ struct DodoApp: App {
                 .environmentObject(taskManager)
                 .environmentObject(dodoManager)
                 .environmentObject(stats)
+                .environmentObject(timeBlockManager)
                 .preferredColorScheme(.dark)
         }
     }
