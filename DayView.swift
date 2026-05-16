@@ -282,11 +282,11 @@ struct DayView: View {
             // NEW
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(color.opacity(block.isCompleted ? 0.08 : 0.25))
+                    .fill(color.opacity(0.9))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(color.opacity(block.isCompleted ? 0.2 : 0.7), lineWidth: 1.5)
+                    .stroke(color.opacity(0.9), lineWidth: 1.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
