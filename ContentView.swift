@@ -39,9 +39,16 @@ struct ContentView: View {
                     .tabItem { Label("Tasks", systemImage: "checklist") }
                     .tag(AppTab.tasks)
                 
-                // After TaskListView tab, before GrowthView tab:
+                //gem but having diamond shape
                 GemsView()
-                    .tabItem { Label("Gems", systemImage: "diamond") }
+                    .tabItem {
+                        Label {
+                            Text("Gems")
+                        } icon: {
+                            Image(uiImage: .emoji("💎"))
+                                .renderingMode(.template)
+                        }
+                    }
                     .tag(AppTab.gems)
 
                 GrowthView()
@@ -303,15 +310,6 @@ struct TodayView: View {
                 }
                 if missedYesterday {
                     dodoManager.resetStreak()
-                }
-            }
-            .animation(.spring(response: 0.4), value: shouldShowRecoveryBanner)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddTask = true }) {
-                        Image(systemName: "plus").fontWeight(.semibold)
-                    }
                 }
             }
         }
@@ -1315,3 +1313,4 @@ extension UIImage {
         .environmentObject(StatsManager())
         .preferredColorScheme(.dark)
 }
+

@@ -25,7 +25,7 @@ struct GemsView: View {
 
                     // Header
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("\(dodoManager.stats.gems.filter(\.isUnlocked).count) of 10 unlocked")
+                        Text("\(dodoManager.stats.gems.filter { $0.isUnlocked }.count) of 10 unlocked")
                             .font(.system(size: 13, weight: .medium, design: .rounded))
                             .foregroundColor(.dodoOrange)
                         Text("Your collection.")
