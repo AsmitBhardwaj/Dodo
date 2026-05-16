@@ -2,24 +2,17 @@
 //  DayView.swift
 //  Dodo
 //
-//  Created by Asmit Bhardwaj on 16/05/26.
-//
-
-
-//
-//  DayView.swift
-//  Dodo
-//
 
 import SwiftUI
 
-// MARK: - Day View
+// MARK: - Day View (Tasks Tab)
 
 struct DayView: View {
     @EnvironmentObject var timeBlockManager: TimeBlockManager
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var dodoManager: DodoManager
 
+    @State private var selectedDate: Date = Date().startOfDay
     @State private var showingAddBlock = false
     @State private var selectedHour: Int = Calendar.current.component(.hour, from: Date())
     @State private var selectedBlock: TimeBlock? = nil
@@ -29,7 +22,8 @@ struct DayView: View {
     private let endHour = 24
 
     var todayBlocks: [TimeBlock] {
-        timeBlockManager.blocks(for: Date())
+        timeBlockManager.blocks(for: selectedDate)
+            .sorted { $0.startTime < $1.startTime }
     }
 
     var body: some View {
@@ -37,7 +31,11 @@ struct DayView: View {
             VStack(spacing: 0) {
 
                 // Header
-                dayHeader
+                header
+
+                // Week strip
+                WeekStrip(selectedDate: $selectedDate)
+                    .padding(.bottom, 8)
 
                 Divider().background(Color.white.opacity(0.06))
 
@@ -65,19 +63,31 @@ struct DayView: View {
                                     .frame(height: blockHeight(block))
                                     .padding(.leading, 60)
                                     .padding(.trailing, 16)
-                                    .onTapGesture {
-                                        selectedBlock = block
-                                    }
+                                    .onTapGesture { selectedBlock = block }
+                                    .gesture(
+                                        DragGesture(minimumDistance: 50, coordinateSpace: .local)
+                                            .onEnded { value in
+                                                if value.translation.width < -50 {
+                                                    timeBlockManager.delete(block)
+                                                }
+                                            }
+                                    )
                             }
 
-                            // Current time indicator
-                            CurrentTimeIndicator(startHour: startHour, hourHeight: hourHeight)
+                            // Current time line — today only
+                            if Calendar.current.isDateInToday(selectedDate) {
+                                CurrentTimeIndicator(startHour: startHour, hourHeight: hourHeight)
+                            }
                         }
                         .padding(.bottom, 32)
                     }
                     .onAppear {
-                        let currentHour = Calendar.current.component(.hour, from: Date())
-                        proxy.scrollTo(max(startHour, currentHour - 1), anchor: .top)
+                        let h = Calendar.current.component(.hour, from: Date())
+                        proxy.scrollTo(max(startHour, h - 1), anchor: .top)
+                    }
+                    .onChange(of: selectedDate) { _ in
+                        let h = Calendar.current.component(.hour, from: Date())
+                        proxy.scrollTo(max(startHour, h - 1), anchor: .top)
                     }
                 }
             }
@@ -85,7 +95,7 @@ struct DayView: View {
             .navigationTitle("")
             .navigationBarHidden(true)
             .sheet(isPresented: $showingAddBlock) {
-                AddTimeBlockView(defaultHour: selectedHour)
+                AddTimeBlockView(defaultHour: selectedHour, selectedDate: selectedDate)
                     .environmentObject(timeBlockManager)
                     .environmentObject(taskManager)
             }
@@ -99,13 +109,13 @@ struct DayView: View {
 
     // MARK: - Header
 
-    private var dayHeader: some View {
+    private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(Date(), format: .dateTime.weekday(.wide))
+                Text(selectedDate, format: .dateTime.weekday(.wide))
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundColor(.dodoOrange)
-                Text(Date(), format: .dateTime.month(.wide).day())
+                Text(selectedDate, format: .dateTime.month(.wide).day())
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
@@ -138,7 +148,68 @@ struct DayView: View {
 
     private func blockHeight(_ block: TimeBlock) -> CGFloat {
         let minutes = block.endTime.timeIntervalSince(block.startTime) / 60
-        return max(CGFloat(minutes / 60) * hourHeight, 28)
+        return max(CGFloat(minutes / 60) * hourHeight, 32)
+    }
+}
+
+// MARK: - Week Strip
+
+struct WeekStrip: View {
+    @Binding var selectedDate: Date
+    private let cal = Calendar.current
+
+    private var weekDates: [Date] {
+        let today = Date().startOfDay
+        let weekday = cal.component(.weekday, from: today)
+        let startOfWeek = cal.date(byAdding: .day, value: -(weekday - 1), to: today)!
+        return (0..<14).compactMap { cal.date(byAdding: .day, value: $0, to: startOfWeek) }
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(weekDates, id: \.self) { date in
+                    WeekDayCell(date: date, isSelected: cal.isDate(date, inSameDayAs: selectedDate))
+                        .onTapGesture { selectedDate = date }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
+struct WeekDayCell: View {
+    let date: Date
+    let isSelected: Bool
+    private let cal = Calendar.current
+
+    private var isToday: Bool { cal.isDateInToday(date) }
+    private var dayLetter: String {
+        let f = DateFormatter()
+        f.dateFormat = "E"
+        return String(f.string(from: date).prefix(1))
+    }
+    private var dayNumber: String { "\(cal.component(.day, from: date))" }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(dayLetter)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundColor(isSelected ? .black : Color.white.opacity(0.4))
+            Text(dayNumber)
+                .font(.system(size: 15, weight: isToday ? .bold : .regular, design: .rounded))
+                .foregroundColor(isSelected ? .black : isToday ? .dodoOrange : .white)
+        }
+        .frame(width: 36, height: 52)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(isSelected ? Color.dodoOrange : Color.white.opacity(0.05))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isToday && !isSelected ? Color.dodoOrange.opacity(0.4) : Color.clear, lineWidth: 1)
+        )
     }
 }
 
@@ -161,7 +232,6 @@ struct HourRow: View {
                 .frame(width: 44, alignment: .trailing)
                 .padding(.trailing, 8)
                 .offset(y: -8)
-
             Rectangle()
                 .fill(Color.white.opacity(0.06))
                 .frame(height: 0.5)
@@ -260,17 +330,18 @@ struct AddTimeBlockView: View {
     @EnvironmentObject var taskManager: TaskManager
 
     let defaultHour: Int
+    let selectedDate: Date
 
     @State private var title = ""
     @State private var selectedCategory: TodoTask.TaskCategory = .ship
     @State private var startTime: Date
     @State private var endTime: Date
-    @State private var linkingTask = false
     @State private var linkedTask: TodoTask? = nil
 
-    init(defaultHour: Int) {
+    init(defaultHour: Int, selectedDate: Date) {
         self.defaultHour = defaultHour
-        var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        self.selectedDate = selectedDate
+        var comps = Calendar.current.dateComponents([.year, .month, .day], from: selectedDate)
         comps.hour = defaultHour
         comps.minute = 0
         let start = Calendar.current.date(from: comps) ?? Date()
@@ -300,28 +371,30 @@ struct AddTimeBlockView: View {
                         .tint(.dodoOrange)
                 }
 
-                Section("Link a task (optional)") {
-                    ForEach(taskManager.tasks.filter { !$0.isCompleted }) { task in
-                        HStack {
-                            Text(task.category.emoji)
-                            Text(task.title)
-                                .font(.system(size: 14))
-                            Spacer()
-                            if linkedTask?.id == task.id {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.dodoOrange)
+                if !taskManager.tasks.filter({ !$0.isCompleted }).isEmpty {
+                    Section("Link a task (optional)") {
+                        ForEach(taskManager.tasks.filter { !$0.isCompleted }) { task in
+                            HStack {
+                                Text(task.category.emoji)
+                                Text(task.title)
+                                    .font(.system(size: 14))
+                                Spacer()
+                                if linkedTask?.id == task.id {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.dodoOrange)
+                                }
                             }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            if linkedTask?.id == task.id {
-                                linkedTask = nil
-                                title = ""
-                                selectedCategory = .ship
-                            } else {
-                                linkedTask = task
-                                title = task.title
-                                selectedCategory = task.category
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if linkedTask?.id == task.id {
+                                    linkedTask = nil
+                                    title = ""
+                                    selectedCategory = .ship
+                                } else {
+                                    linkedTask = task
+                                    title = task.title
+                                    selectedCategory = task.category
+                                }
                             }
                         }
                     }

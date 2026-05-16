@@ -31,11 +31,13 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
-                DayView()
+                // Today tab — revert to TodayView
+                TodayView()
                     .tabItem { Label("Today", systemImage: "sun.max.fill") }
                     .tag(AppTab.today)
 
-                TaskListView()
+                // Tasks tab — now becomes DayView
+                DayView()
                     .tabItem { Label("Tasks", systemImage: "checklist") }
                     .tag(AppTab.tasks)
                 
