@@ -42,7 +42,7 @@ enum StatType: String, CaseIterable {
     var relevantCategories: [TodoTask.TaskCategory] {
         switch self {
         case .focus:       return [.ship]
-        case .mood:        return [.sharpen, .clear]
+        case .mood:        return [.sharpen, .wrap]
         case .consistency: return [.train]
         }
     }

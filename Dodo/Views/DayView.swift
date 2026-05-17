@@ -248,7 +248,7 @@ struct DayView: View {
             case .ship:    return Color(red: 0.976, green: 0.451, blue: 0.086)
             case .sharpen: return Color(red: 0.4, green: 0.6, blue: 1.0)
             case .train:   return Color(red: 0.2, green: 0.78, blue: 0.35)
-            case .clear:   return Color(red: 0.7, green: 0.4, blue: 0.9)
+            case .wrap:   return Color(red: 0.7, green: 0.4, blue: 0.9)
             }
         }
         

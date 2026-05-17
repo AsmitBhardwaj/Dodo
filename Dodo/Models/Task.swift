@@ -38,7 +38,7 @@ struct TodoTask: Identifiable, Codable {
         case ship    = "Ship"
         case sharpen = "Sharpen"
         case train   = "Train"
-        case clear   = "Clear"
+        case wrap   = "Wrap"
 
         var emoji: String {
             switch self {
@@ -46,7 +46,7 @@ struct TodoTask: Identifiable, Codable {
             case .ship:    return "🚀"
             case .sharpen: return "⚗️"
             case .train:   return "🫀"
-            case .clear:   return "💪"
+            case .wrap:   return "💪"
             }
         }
 
@@ -55,7 +55,7 @@ struct TodoTask: Identifiable, Codable {
             case .ship:    return "orange"
             case .sharpen: return "blue"
             case .train:   return "green"
-            case .clear:   return "purple"
+            case .wrap:   return "purple"
             }
         }
     }
@@ -82,7 +82,7 @@ struct TodoTask: Identifiable, Codable {
             case .ship:    base = 10
             case .sharpen: base = 7
             case .train:   base = 6
-            case .clear:   base = 3
+            case .wrap:   base = 3
             }
             let multiplier: Double
             switch duration {
