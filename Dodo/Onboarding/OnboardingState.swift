@@ -19,6 +19,7 @@ final class OnboardingState {
     var firstTaskTitle: String = ""
     var firstTaskCategory: TodoTask.TaskCategory? = nil
     var firstTaskDuration: TodoTask.TaskDuration = .short
+    var primaryGoal: String = ""
     
     // Quiz answer deltas
     // Each delta adjusts focus/consistency/output/recovery from baseline 50
