@@ -24,6 +24,7 @@ struct DodoStats: Codable {
     var currentStreak: Int = 0
     var personalBest: Int = 0
     var lastActiveDate: Date = Date()
+    var activeDates: [String] = []
     var gems: [Gem] = DodoStats.defaultGems
 
     static var defaultGems: [Gem] {
@@ -59,9 +60,35 @@ class DodoManager: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "dodoStats"),
            let decoded = try? JSONDecoder().decode(DodoStats.self, from: data) {
             self.stats = decoded
+
+            // ADD THIS BLOCK HERE
+            if stats.activeDates.isEmpty && stats.currentStreak > 0 {
+                let cal = Calendar.current
+                for i in 0..<stats.currentStreak {
+                    if let date = cal.date(byAdding: .day, value: -i, to: Date().startOfDay) {
+                        let key = dateKey(date)
+                        if !stats.activeDates.contains(key) {
+                            stats.activeDates.append(key)
+                        }
+                    }
+                }
+                saveStats()
+            }
+
         } else {
             self.stats = DodoStats()
         }
+    }
+    // MARK: - Date Key
+
+    func dateKey(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
+    }
+
+    func isActive(on date: Date) -> Bool {
+        stats.activeDates.contains(dateKey(date))
     }
 
     // MARK: - Computed Stats
@@ -139,8 +166,24 @@ class DodoManager: ObservableObject {
         if stats.currentStreak > stats.personalBest {
             stats.personalBest = stats.currentStreak
         }
+
+        // Track active date for week dots
+        let key = dateKey(today)
+        if !stats.activeDates.contains(key) {
+            stats.activeDates.append(key)
+        }
+
         checkLevelUp()
         checkGemUnlocks()
+        saveStats()
+    }
+
+    func healthTaskCompleted(amount: Int) {
+        taskCompleted(amount: amount)
+    }
+
+    func resetStreak() {
+        stats.currentStreak = 0
         saveStats()
     }
 
@@ -170,15 +213,6 @@ class DodoManager: ObservableObject {
                 stats.gems[idx].unlockedDate = Date()
             }
         }
-        saveStats()
-    }
-
-    func healthTaskCompleted(amount: Int) {
-        taskCompleted(amount: amount)
-    }
-
-    func resetStreak() {
-        stats.currentStreak = 0
         saveStats()
     }
 

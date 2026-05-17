@@ -149,8 +149,13 @@ class TaskManager: ObservableObject {
         tasks(for: date).filter { !$0.isCompleted }
     }
 
+    // NEW
     func completedTasks(for date: Date) -> [TodoTask] {
-        tasks(for: date).filter { $0.isCompleted }
+        tasks.filter {
+            $0.isCompleted &&
+            $0.completedDate != nil &&
+            Calendar.current.isDate($0.completedDate!, inSameDayAs: date)
+        }
     }
 
     /// 0.0–1.0 completion ratio for a day. Returns 0 if no tasks.

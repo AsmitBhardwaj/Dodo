@@ -480,6 +480,7 @@ struct AllDoneCard: View {
                         //Flame chart
                         FlameChartView()
                             .environmentObject(taskManager)
+                            .environmentObject(dodoManager)
                             .padding(.horizontal)
 
                         // Weekly report card
@@ -739,8 +740,7 @@ struct StreakHeaderCard: View {
             let isFuture = date > today
             let isToday  = cal.isDateInToday(date)
             // NEW
-            let done = !isFuture
-                     && (taskManager.completedTasks(for: date).count > 0)
+            let done = !isFuture && dodoManager.isActive(on: date)
             return (letter: ["M","T","W","T","F","S","S"][i],
                     completed: done,
                     isToday: isToday,
@@ -1135,6 +1135,7 @@ struct WeeklyReportCard: View {
 
 struct FlameChartView: View {
     @EnvironmentObject var taskManager: TaskManager
+    @EnvironmentObject var dodoManager: DodoManager
 
     private let days = 30
     private let cal = Calendar.current
@@ -1286,13 +1287,9 @@ struct FlameChartView: View {
         .cornerRadius(16)
     }
 
+    // NEW
     private func dodoStreak() -> Int {
-        var streak = 0
-        for bar in bars.reversed() {
-            if bar.hasTask && bar.progress > 0 { streak += 1 }
-            else if bar.hasTask { break }
-        }
-        return streak
+        return dodoManager.stats.currentStreak
     }
 }
 
