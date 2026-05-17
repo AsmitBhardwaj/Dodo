@@ -23,7 +23,7 @@ struct DodoStats: Codable {
     var totalReps: Double = 0
     var currentStreak: Int = 0
     var personalBest: Int = 0
-    var lastActiveDate: Date = Date()
+    var lastActiveDate: Date = Date.distantPast
     var activeDates: [String] = []
     var gems: [Gem] = DodoStats.defaultGems
 
