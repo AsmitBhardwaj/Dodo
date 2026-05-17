@@ -97,6 +97,7 @@ struct DayView: View {
             .sheet(item: $selectedBlock) { block in
                 TimeBlockDetailView(block: block)
                     .environmentObject(timeBlockManager)
+                    .environmentObject(taskManager)
                     .environmentObject(dodoManager)
             }
         }
@@ -335,8 +336,6 @@ struct DayView: View {
         @State private var selectedCategory: TodoTask.TaskCategory = .ship
         @State private var startTime: Date
         @State private var endTime: Date
-        @State private var linkedTask: TodoTask? = nil
-        
         init(defaultHour: Int, selectedDate: Date) {
             self.defaultHour = defaultHour
             self.selectedDate = selectedDate
@@ -369,35 +368,7 @@ struct DayView: View {
                         DatePicker("End", selection: $endTime, displayedComponents: [.hourAndMinute])
                             .tint(.dodoOrange)
                     }
-                    
-                    if !taskManager.tasks.filter({ !$0.isCompleted }).isEmpty {
-                        Section("Link a task (optional)") {
-                            ForEach(taskManager.tasks.filter { !$0.isCompleted }) { task in
-                                HStack {
-                                    Text(task.category.emoji)
-                                    Text(task.title)
-                                        .font(.system(size: 14))
-                                    Spacer()
-                                    if linkedTask?.id == task.id {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.dodoOrange)
-                                    }
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if linkedTask?.id == task.id {
-                                        linkedTask = nil
-                                        title = ""
-                                        selectedCategory = .ship
-                                    } else {
-                                        linkedTask = task
-                                        title = task.title
-                                        selectedCategory = task.category
-                                    }
-                                }
-                            }
-                        }
-                    }
+
                 }
                 .navigationTitle("New Block")
                 .navigationBarTitleDisplayMode(.inline)
@@ -415,15 +386,34 @@ struct DayView: View {
         }
         
         private func addBlock() {
+            // Auto-create a matching TodoTask so Today tab tracks this block
+            let newTask = TodoTask(
+                title: title,
+                category: selectedCategory,
+                rewardValue: 0,
+                dueDate: selectedDate.startOfDay,
+                duration: inferDuration(minutes: Int(endTime.timeIntervalSince(startTime) / 60))
+            )
+            taskManager.addTask(newTask)
+
             var block = TimeBlock(
                 title: title,
                 category: selectedCategory,
                 startTime: startTime,
                 endTime: endTime
             )
-            block.linkedTaskId = linkedTask?.id
+            block.linkedTaskId = newTask.id
             timeBlockManager.add(block)
             dismiss()
+        }
+
+        private func inferDuration(minutes: Int) -> TodoTask.TaskDuration {
+            switch minutes {
+            case ..<10:  return .quick
+            case ..<45:  return .short
+            case ..<90:  return .medium
+            default:     return .long
+            }
         }
     }
     
@@ -432,6 +422,7 @@ struct DayView: View {
     struct TimeBlockDetailView: View {
         @Environment(\.dismiss) var dismiss
         @EnvironmentObject var timeBlockManager: TimeBlockManager
+        @EnvironmentObject var taskManager: TaskManager
         @EnvironmentObject var dodoManager: DodoManager
         
         let block: TimeBlock
@@ -460,6 +451,12 @@ struct DayView: View {
                             Button {
                                 timeBlockManager.complete(block)
                                 dodoManager.taskCompleted(amount: Int(Double(block.durationMinutes) / 60 * 10))
+                                // Complete the linked TodoTask so Today tab reflects it
+                                if let taskId = block.linkedTaskId,
+                                   let task = taskManager.tasks.first(where: { $0.id == taskId }),
+                                   !task.isCompleted {
+                                    taskManager.completeTask(task)
+                                }
                                 dismiss()
                             } label: {
                                 Label("Mark as done", systemImage: "checkmark.circle.fill")
