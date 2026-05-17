@@ -740,7 +740,7 @@ struct StreakHeaderCard: View {
             let isToday  = cal.isDateInToday(date)
             let done     = !isFuture
                         && taskManager.hasTasks(for: date)
-                        && taskManager.progress(for: date) >= 0.5
+                        && taskManager.progress(for: date) > 0
             return (letter: ["M","T","W","T","F","S","S"][i],
                     completed: done,
                     isToday: isToday,
