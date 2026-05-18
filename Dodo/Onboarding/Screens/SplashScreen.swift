@@ -19,7 +19,7 @@ struct SplashScreen: View {
 
                 // Logo at 1/4
                 Text("Dodo")
-                    .font(.system(size: 42, weight: .black))
+                    .font(.custom("BebasNeue-Regular", size: 42))
                     .foregroundColor(.dodoOrange)
                     .tracking(-1.5)
                     .position(x: geo.size.width / 2, y: geo.size.height * 0.4)
@@ -30,10 +30,10 @@ struct SplashScreen: View {
                     .foregroundColor(.white.opacity(0.35))
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.6)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.5)
 
                 // Button at 3/4
-                DodoButton(title: "Let's go") {
+                DodoButton(title: "LET'S START") {
                     onNext()
                 }
                 .padding(.horizontal, 24)
