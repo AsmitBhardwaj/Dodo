@@ -15,8 +15,6 @@ struct NameScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            DodoLogoView(size: 44)
-                .padding(.top, 72)
 
             Spacer()
 
