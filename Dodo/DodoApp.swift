@@ -15,13 +15,13 @@ struct DodoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            let _ = print("🟠 App launched")
             RootView()
                 .environmentObject(taskManager)
                 .environmentObject(dodoManager)
                 .environmentObject(stats)
                 .environmentObject(timeBlockManager)
                 .preferredColorScheme(.dark)
+            
         }
     }
 }
