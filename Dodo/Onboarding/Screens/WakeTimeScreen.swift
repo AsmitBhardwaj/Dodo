@@ -12,7 +12,7 @@ struct WakeTimeScreen: View {
     @Bindable var state: OnboardingState
     let onNext: () -> Void
 
-    let times = ["6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM"]
+    let times = ["<7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "10:00 AM<"]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,8 +20,8 @@ struct WakeTimeScreen: View {
             Spacer()
 
             VStack(alignment: .leading, spacing: 20) {
-                Text("What time do\nyou wake up?")
-                    .font(.system(size: 28, weight: .bold))
+                Text("What time do\nyou wake up, \(state.name)?")
+                    .font(.system(size: 36, weight: .black))
                     .foregroundColor(.dodoOrange)
                     .lineSpacing(4)
                     .padding(.horizontal, 24)
@@ -35,7 +35,7 @@ struct WakeTimeScreen: View {
                             }
                         } label: {
                             Text(time)
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(state.wakeTime == time ? .dodoOrange : .white.opacity(0.75))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)

@@ -20,7 +20,7 @@ struct NameScreen: View {
 
             VStack(alignment: .leading, spacing: 20) {
                 Text("What should\nDodo call you?")
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 36, weight: .black))
                     .foregroundColor(.dodoOrange)
                     .lineSpacing(4)
 
@@ -48,6 +48,7 @@ struct NameScreen: View {
             DodoButton(title: "Continue", disabled: !state.canAdvanceFromName) {
                 onNext()
             }
+            .font(.system(size: 26))
             .padding(.horizontal, 24)
             .padding(.bottom, 48)
         }

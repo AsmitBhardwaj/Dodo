@@ -19,15 +19,15 @@ struct SplashScreen: View {
 
                 // Logo at 1/4
                 Text("Dodo")
-                    .font(.custom("BebasNeue-Regular", size: 42))
+                    .font(.system(size: 58, weight: .black))
                     .foregroundColor(.dodoOrange)
                     .tracking(-1.5)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.4)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.45)
 
                 // Slogan at 2/4
-                Text("Either you do it\nor you don't.")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white.opacity(0.35))
+                Text(" You do it or you don't.")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white.opacity(0.25))
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .position(x: geo.size.width / 2, y: geo.size.height * 0.5)
@@ -37,6 +37,7 @@ struct SplashScreen: View {
                     onNext()
                 }
                 .padding(.horizontal, 24)
+                .font(.system(size: 20, weight: .bold))
                 .position(x: geo.size.width / 2, y: geo.size.height * 0.9)
             }
         }
