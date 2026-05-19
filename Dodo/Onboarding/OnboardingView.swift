@@ -42,7 +42,6 @@ struct OnboardingView: View {
                 case 14: CategoryScreen(category: TodoTask.TaskCategory.allCases[1], isLast: false, onNext: advance)
                 case 15: CategoryScreen(category: TodoTask.TaskCategory.allCases[2], isLast: false, onNext: advance)
                 case 16: CategoryScreen(category: TodoTask.TaskCategory.allCases[3], isLast: true, onNext: advance)
-                case 17: FirstTaskScreen(state: state, onNext: advance)
                 case 18: GemUnlockScreen(state: state, onFinish: finish)
                 default: SplashScreen(onNext: advance)
                 }

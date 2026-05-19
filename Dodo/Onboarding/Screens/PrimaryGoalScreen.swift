@@ -12,7 +12,7 @@ struct PrimaryGoalScreen: View {
     @Bindable var state: OnboardingState
     let onNext: () -> Void
 
-    let goals = ["Study & academics", "Work & career", "Health & fitness", "Build something"]
+    let goals = ["Study & academics", "Work & career", "Health & fitness", "Personal Growth"]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,7 +20,7 @@ struct PrimaryGoalScreen: View {
 
             VStack(alignment: .leading, spacing: 20) {
                 Text("What's your\nprimary focus?")
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 36, weight: .black))
                     .foregroundColor(.dodoOrange)
                     .lineSpacing(4)
                     .padding(.horizontal, 24)
@@ -34,7 +34,7 @@ struct PrimaryGoalScreen: View {
                             }
                         } label: {
                             Text(goal)
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(state.primaryGoal == goal ? .dodoOrange : .white.opacity(0.75))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.vertical, 16)

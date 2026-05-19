@@ -36,10 +36,10 @@ struct WakeTimeScreen: View {
                         } label: {
                             Text(time)
                                 .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(state.wakeTime == time ? .dodoOrange : .white.opacity(0.75))
+                                .foregroundColor(state.wakeTime == time ? .black : .white.opacity(0.75))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(Color.white.opacity(0.04))
+                                .background(state.wakeTime == time ? Color.dodoOrange : Color.white.opacity(0.04))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 14)
                                         .stroke(

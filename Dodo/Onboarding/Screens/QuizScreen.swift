@@ -17,64 +17,64 @@ struct QuizScreen: View {
         (
             "What brought you to Dodo?",
             [
-                "I keep starting strong, then quietly stopping",
-                "I know exactly what to do. I just don't do it",
-                "I'm done winging it. Done improvising my life",
-                "I'm wasting too much time and I can feel it"
+                "I keep starting strong but I stop when gas runs out",
+                "I know what I need to do. I just do not do it.",
+                "I plan everything but I stop at the execution phase.",
+                "I'm wasting too much time and I know it."
             ]
         ),
         (
-            "Be honest. What's actually stopping you?",
+            "Why is that happening?",
             [
-                "Motivation shows up, then quietly disappears",
-                "Everything pulls my attention. My phone, my brain, everything",
-                "I forget what I was working on within an hour",
-                "I'm inconsistent and I've stopped pretending otherwise"
+                "I work on motivation and not on discpline.",
+                "I am too distracted and unfocused to get anything done",
+                "I confuse being busy with being productive",
+                "I'm inconsistent and I've stopped taking accountability."
             ]
         ),
         (
-            "If we talk in 3 months, what's changed?",
+            "When do you do your best work?",
             [
-                "I actually finished the things I started",
-                "I showed up every single day. Even the bad ones",
-                "I'm sleeping, eating, moving like an adult",
-                "I built something real. Something I can point to"
+                "Early Mornings",
+                "Afternoon.",
+                "Evenings.",
+                "Late Nights."
             ]
         ),
         (
-            "One bad day. What happens next?",
+            "What is a good day for you?",
             [
-                "One miss becomes three. Three becomes a week",
-                "I beat myself up for a day, then claw my way back",
-                "Honestly? I don't really notice until it's been a while",
-                "I go twice as hard the next day to make up for it"
+                "I finish everything I planned to finish.",
+                "I made progress on most things.",
+                "I stayed locked in without getting distracted",
+                "I felt in control of my time and output."
             ]
         ),
         (
-            "When does your best work actually happen?",
+            "What does your ideal morning look like?",
             [
-                "Locked in, no phone, hours at a time",
-                "Quick focused hits scattered throughout the day",
-                "Whenever the mood hits. Which is rarely",
-                "The night before it's due. Always has been"
+                "Woke up early, worked out and got some work done.",
+                "Woke up, got my coffee and plan out the whole day.",
+                "Woke up and started working directly.",
+                "Depends on the day."
             ]
         ),
         (
-            "Last 30 days. What pattern do you see?",
+            "How do you handle a packed schedule?",
             [
-                "All or nothing. Perfect week, then I disappear",
-                "Steady but slow. I never go hard, never quit either",
-                "Total chaos. Good days and bad days, no rhyme or reason",
-                "Monday hero, Friday ghost. Every week, same story"
+                "I prioritise the important things.",
+                "I break it into small pieces.",
+                "I stay up late and rawdog it regardless.",
+                "I go with the flow."
             ]
         ),
         (
-            "Finishing something — what does it feel like?",
+            "What's one thing you want Dodo to help you with?",
             [
-                "Rare. I'm always 80% done with five things",
-                "Good for about ten minutes, then I'm onto the next thing",
-                "Honestly? I'm not sure I've ever felt actually done",
-                "Depends. Sometimes it's everything. Sometimes it's nothing"
+                "I want to use it to stop procrastination.",
+                "I want a system that I can adhere to daily.",
+                "I want to use Dodo to build discipline.",
+                "I want to make better use of the time I already have."
             ]
         )
     ]
@@ -89,7 +89,7 @@ struct QuizScreen: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(currentQuestion.question)
-                    .font(.system(size: 26, weight: .bold))
+                    .font(.system(size: 36, weight: .black))
                     .foregroundColor(.dodoOrange)
                     .lineSpacing(4)
                     .padding(.horizontal, 24)
@@ -103,7 +103,7 @@ struct QuizScreen: View {
                             }
                         } label: {
                             Text(option)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(
                                     state.quizAnswers[questionIndex] == index
                                         ? .dodoOrange
